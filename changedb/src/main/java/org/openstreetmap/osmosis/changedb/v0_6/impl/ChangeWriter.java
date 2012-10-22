@@ -5,13 +5,14 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.openstreetmap.osmosis.changedb.common.DatabaseContext;
 import org.openstreetmap.osmosis.core.OsmosisRuntimeException;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.openstreetmap.osmosis.core.domain.v0_6.Relation;
 import org.openstreetmap.osmosis.core.domain.v0_6.Way;
 import org.openstreetmap.osmosis.core.task.common.ChangeAction;
+import org.openstreetmap.osmosis.pgsnapshot.common.DatabaseContext;
+import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.ActionDao;
 
 
 /**
@@ -23,7 +24,6 @@ public class ChangeWriter {
 
 	private DatabaseContext dbCtx;
 	private ActionDao actionDao;
-	private UserDao userDao;
 	private ChangeDao changeDao;
 	private Set<Integer> userSet;
 
@@ -39,7 +39,6 @@ public class ChangeWriter {
 		this.dbCtx = dbCtx;
 
 		actionDao = new ActionDao(dbCtx);
-		userDao = new UserDao(dbCtx, actionDao);
 		changeDao = new ChangeDao(dbCtx, actionDao);
 
 		userSet = new HashSet<Integer>();

@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.openstreetmap.osmosis.changedb.common.DatabaseContext;
 import org.openstreetmap.osmosis.changedb.common.SchemaVersionValidator;
 import org.openstreetmap.osmosis.changedb.v0_6.impl.ChangeDbWriter;
 import org.openstreetmap.osmosis.changedb.v0_6.impl.ChangeWriter;
@@ -15,6 +14,7 @@ import org.openstreetmap.osmosis.core.database.DatabaseLoginCredentials;
 import org.openstreetmap.osmosis.core.database.DatabasePreferences;
 import org.openstreetmap.osmosis.core.task.common.ChangeAction;
 import org.openstreetmap.osmosis.core.task.v0_6.ChangeSink;
+import org.openstreetmap.osmosis.pgsnapshot.common.DatabaseContext;
 
 
 /**
