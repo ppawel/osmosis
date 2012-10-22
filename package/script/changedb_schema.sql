@@ -6,16 +6,17 @@ DROP TABLE IF EXISTS changesets;
 
 -- Create a table for changes.
 CREATE TABLE changes (
-    id bigint NOT NULL,
-    version int NOT NULL,
+    id bigserial NOT NULL,
     user_id int NOT NULL,
-    tstamp timestamp without time zone NOT NULL,
+    version int NOT NULL,
     changeset_id bigint NOT NULL,
+    tstamp timestamp without time zone NOT NULL,
+    action character varying(10) NOT NULL,
+    element_type character varying(10) NOT NULL,
     element_id bigint NOT NULL,
-    element_type bigint NOT NULL,
-    geom geometry,
     old_tags hstore,
-    new_tags hstore
+    new_tags hstore,
+    geom geometry
 );
 
 -- Create a table for changesets.
