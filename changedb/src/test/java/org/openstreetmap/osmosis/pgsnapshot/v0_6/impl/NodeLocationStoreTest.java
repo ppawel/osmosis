@@ -4,10 +4,10 @@ package org.openstreetmap.osmosis.pgsnapshot.v0_6.impl;
 import org.junit.Assert;
 import org.junit.Test;
 
-import org.openstreetmap.osmosis.pgsnapshot.common.InMemoryNodeLocationStore;
-import org.openstreetmap.osmosis.pgsnapshot.common.NodeLocation;
-import org.openstreetmap.osmosis.pgsnapshot.common.NodeLocationStore;
-import org.openstreetmap.osmosis.pgsnapshot.common.PersistentNodeLocationStore;
+import org.openstreetmap.osmosis.changedb.common.InMemoryNodeLocationStore;
+import org.openstreetmap.osmosis.changedb.common.NodeLocation;
+import org.openstreetmap.osmosis.changedb.common.NodeLocationStore;
+import org.openstreetmap.osmosis.changedb.common.PersistentNodeLocationStore;
 import org.openstreetmap.osmosis.core.util.FixedPrecisionCoordinateConvertor;
 
 
