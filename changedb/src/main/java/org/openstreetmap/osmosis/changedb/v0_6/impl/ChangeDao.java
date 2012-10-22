@@ -10,19 +10,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.openstreetmap.osmosis.changedb.common.DatabaseContext;
 import org.openstreetmap.osmosis.core.database.FeaturePopulator;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
 import org.openstreetmap.osmosis.core.domain.v0_6.EntityType;
+import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.openstreetmap.osmosis.core.domain.v0_6.Relation;
 import org.openstreetmap.osmosis.core.domain.v0_6.Tag;
 import org.openstreetmap.osmosis.core.domain.v0_6.Way;
 import org.openstreetmap.osmosis.core.task.common.ChangeAction;
 import org.openstreetmap.osmosis.hstore.PGHStore;
-import org.openstreetmap.osmosis.pgsnapshot.common.DatabaseContext;
 import org.openstreetmap.osmosis.pgsnapshot.common.NoSuchRecordException;
 import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.ActionDao;
 import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.EntityDao;
-import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.NodeDao;
+import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.NodeMapper;
 import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.RelationMapper;
 import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.WayMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
@@ -40,7 +41,7 @@ public class ChangeDao {
 
 	private SimpleJdbcTemplate jdbcTemplate;
 	private PreparedStatement changeInsertStatement;
-	private NodeDao nodeDao;
+	private EntityDao<Node> nodeDao;
 	private EntityDao<Way> wayDao;
 	private EntityDao<Relation> relationDao;
 
@@ -55,7 +56,13 @@ public class ChangeDao {
 	 * @throws SQLException
 	 */
 	public ChangeDao(DatabaseContext dbCtx, ActionDao actionDao) throws SQLException {
-		nodeDao = new NodeDao(dbCtx, actionDao);
+		nodeDao = new EntityDao<Node>(dbCtx.getSimpleJdbcTemplate(), new NodeMapper(), actionDao) {
+
+			@Override
+			protected List<FeaturePopulator<Node>> getFeaturePopulators(String tablePrefix) {
+				return Collections.emptyList();
+			}
+		};
 
 		wayDao = new EntityDao<Way>(dbCtx.getSimpleJdbcTemplate(), new WayMapper(), actionDao) {
 
