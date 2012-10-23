@@ -100,6 +100,8 @@ public class ChangeDao {
 		changeInsertStatement.setLong(7, entity.getId());
 		changeInsertStatement.setObject(8, null);
 		changeInsertStatement.setObject(9, getTags(entity));
+		changeInsertStatement.setObject(10, null);
+		changeInsertStatement.setObject(11, null);
 
 		try {
 			if (entity.getType() == EntityType.Node) {

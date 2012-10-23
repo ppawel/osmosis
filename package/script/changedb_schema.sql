@@ -33,3 +33,48 @@ CREATE TABLE changesets (
 
 ALTER TABLE ONLY changes ADD CONSTRAINT pk_changes PRIMARY KEY (id);
 ALTER TABLE ONLY changesets ADD CONSTRAINT pk_changesets PRIMARY KEY (id);
+
+DROP INDEX IF EXISTS idx_changes_changeset_id;
+CREATE INDEX idx_changes_changeset_id ON changes USING btree (changeset_id);
+
+
+
+DROP FUNCTION IF EXISTS Osmosis_ChangeDb_UpdateChangesetGeom(bigint);
+CREATE FUNCTION Osmosis_ChangeDb_UpdateChangesetGeom(bigint) RETURNS void AS $$
+DECLARE
+  changeset_geom geometry;
+
+BEGIN
+
+changeset_geom := (
+  SELECT st_collect(g.geom)
+  FROM
+  (
+    SELECT (ST_Dump(old_geom)).geom FROM changes WHERE changeset_id = $1 AND element_type = 'Way'
+    UNION ALL
+    SELECT (ST_Dump(new_geom)).geom FROM changes WHERE changeset_id = $1 AND element_type = 'Way'
+    UNION ALL
+    SELECT ST_MakeLine(old_geom, old_geom) FROM changes WHERE changeset_id = $1 AND element_type = 'Node'
+    UNION ALL
+    SELECT ST_MakeLine(new_geom, new_geom) FROM changes WHERE changeset_id = $1 AND element_type = 'Node'
+  ) g);
+
+UPDATE changesets SET geom = changeset_geom WHERE id = $1;
+
+END;
+$$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS Osmosis_ChangeDb_UpdateAllChangesets();
+CREATE FUNCTION Osmosis_ChangeDb_UpdateAllChangesets() RETURNS void AS $$
+DECLARE
+  changeset_id bigint;
+
+BEGIN
+
+FOR changeset_id IN SELECT id FROM changesets LOOP
+  RAISE NOTICE '% Changeset %', clock_timestamp(), changeset_id;
+  PERFORM Osmosis_ChangeDb_UpdateChangesetGeom(changeset_id);
+END LOOP;
+
+END;
+$$ LANGUAGE plpgsql;

@@ -33,9 +33,7 @@ public class ChangesetManager implements Releasable {
 	private static final String SQL_INSERT_CHANGESET = "INSERT INTO changesets"
 			+ " (id, user_id, created_at, closed_at, num_changes)" + " VALUES" + " (?, ?, NOW(), NOW(), 0)";
 
-	private static final String SQL_UPDATE_CHANGESET_GEOM = "UPDATE changesets cs "
-			+ "SET geom = (SELECT ST_Union(ST_MakeLine(old_geom, old_geom)) FROM changes c WHERE c.changeset_id = cs.id) "
-			+ "WHERE cs.id = ?";
+	private static final String SQL_UPDATE_CHANGESET_GEOM = "SELECT Osmosis_ChangeDb_UpdateChangesetGeom(?)";
 
 	private static final String SQL_SELECT_CHANGESET_COUNT = "SELECT Count(*) AS changesetCount FROM changesets WHERE id = ?";
 
@@ -180,6 +178,6 @@ public class ChangesetManager implements Releasable {
 	public void updateChangesetGeometry(long changesetId) throws SQLException {
 		LOG.info("Updating changeset " + changesetId + " geometry");
 		updateChangesetStatement.setLong(1, changesetId);
-		updateChangesetStatement.executeUpdate();
+		updateChangesetStatement.execute();
 	}
 }
