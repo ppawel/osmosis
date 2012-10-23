@@ -16,7 +16,8 @@ CREATE TABLE changes (
     element_id bigint NOT NULL,
     old_tags hstore,
     new_tags hstore,
-    geom geometry
+    old_geom geometry,
+    new_geom geometry
 );
 
 -- Create a table for changesets.
@@ -26,7 +27,8 @@ CREATE TABLE changesets (
   created_at timestamp without time zone NOT NULL,
   closed_at timestamp without time zone NOT NULL,
   num_changes integer NOT NULL DEFAULT 0,
-  tags hstore
+  tags hstore,
+  geom geometry
 );
 
 ALTER TABLE ONLY changes ADD CONSTRAINT pk_changes PRIMARY KEY (id);

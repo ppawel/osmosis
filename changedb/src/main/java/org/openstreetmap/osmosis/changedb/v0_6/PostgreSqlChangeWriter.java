@@ -3,6 +3,8 @@ package org.openstreetmap.osmosis.changedb.v0_6;
 
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.openstreetmap.osmosis.changedb.common.DatabaseContext;
 import org.openstreetmap.osmosis.changedb.v0_6.impl.ChangeDao;
@@ -26,6 +28,7 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 	private ChangesetManager changesetManager;
 	private ChangeDao changeDao;
 	private boolean initialized;
+	private Set<Long> seenChangesetIds;
 
 
 	/**
@@ -43,6 +46,7 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 		changesetManager = new ChangesetManager(dbCtx);
 		changeDao = new ChangeDao(dbCtx, null);
 		initialized = false;
+		seenChangesetIds = new TreeSet<Long>();
 	}
 
 
@@ -69,8 +73,10 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 	public void process(ChangeContainer change) {
 		initialize();
 
-		changesetManager.addChangesetIfRequired(change.getEntityContainer().getEntity().getChangesetId(), change
-				.getEntityContainer().getEntity().getUser());
+		long changesetId = change.getEntityContainer().getEntity().getChangesetId();
+
+		seenChangesetIds.add(changesetId);
+		changesetManager.addChangesetIfRequired(changesetId, change.getEntityContainer().getEntity().getUser());
 
 		try {
 			changeDao.saveChange(change.getEntityContainer().getEntity(), change.getAction());
@@ -88,6 +94,15 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 		initialize();
 
 		dbCtx.commitTransaction();
+
+		for (Long changesetId : seenChangesetIds) {
+			try {
+				changesetManager.updateChangesetGeometry(changesetId);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 

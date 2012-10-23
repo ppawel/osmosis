@@ -33,6 +33,10 @@ public class ChangesetManager implements Releasable {
 	private static final String SQL_INSERT_CHANGESET = "INSERT INTO changesets"
 			+ " (id, user_id, created_at, closed_at, num_changes)" + " VALUES" + " (?, ?, NOW(), NOW(), 0)";
 
+	private static final String SQL_UPDATE_CHANGESET_GEOM = "UPDATE changesets cs "
+			+ "SET geom = (SELECT ST_Union(ST_MakeLine(old_geom, old_geom)) FROM changes c WHERE c.changeset_id = cs.id) "
+			+ "WHERE cs.id = ?";
+
 	private static final String SQL_SELECT_CHANGESET_COUNT = "SELECT Count(*) AS changesetCount FROM changesets WHERE id = ?";
 
 	private final DatabaseContext dbCtx;
@@ -40,6 +44,7 @@ public class ChangesetManager implements Releasable {
 	private final ReleasableStatementContainer statementContainer;
 	private PreparedStatement insertStatement;
 	private PreparedStatement selectCountStatement;
+	private PreparedStatement updateChangesetStatement;
 	private Set<Long> knownChangesetIds;
 
 
@@ -58,6 +63,9 @@ public class ChangesetManager implements Releasable {
 		releasableContainer.add(statementContainer);
 
 		knownChangesetIds = new LinkedHashSet<Long>(32768);
+
+		updateChangesetStatement = statementContainer
+				.add(dbCtx.prepareStatementForStreaming(SQL_UPDATE_CHANGESET_GEOM));
 	}
 
 
@@ -166,5 +174,12 @@ public class ChangesetManager implements Releasable {
 	@Override
 	public void release() {
 		releasableContainer.release();
+	}
+
+
+	public void updateChangesetGeometry(long changesetId) throws SQLException {
+		LOG.info("Updating changeset " + changesetId + " geometry");
+		updateChangesetStatement.setLong(1, changesetId);
+		updateChangesetStatement.executeUpdate();
 	}
 }

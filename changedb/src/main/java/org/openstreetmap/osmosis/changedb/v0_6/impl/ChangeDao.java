@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.openstreetmap.osmosis.changedb.common.DatabaseContext;
+import org.openstreetmap.osmosis.changedb.common.PointBuilder;
+import org.openstreetmap.osmosis.changedb.common.WayWithLinestring;
+import org.openstreetmap.osmosis.changedb.common.WayWithLinestringMapper;
 import org.openstreetmap.osmosis.core.database.FeaturePopulator;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
 import org.openstreetmap.osmosis.core.domain.v0_6.EntityType;
@@ -25,7 +28,7 @@ import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.ActionDao;
 import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.EntityDao;
 import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.NodeMapper;
 import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.RelationMapper;
-import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.WayMapper;
+import org.postgis.PGgeometry;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
 
@@ -36,14 +39,15 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  */
 public class ChangeDao {
 	private final static String INSERT_SQL = "INSERT INTO changes "
-			+ "(user_id, version, changeset_id, tstamp, action, element_type, element_id, old_tags, new_tags, geom) VALUES "
-			+ "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			+ "(user_id, version, changeset_id, tstamp, action, element_type, element_id, old_tags, new_tags, old_geom, new_geom) VALUES "
+			+ "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 	private SimpleJdbcTemplate jdbcTemplate;
 	private PreparedStatement changeInsertStatement;
 	private EntityDao<Node> nodeDao;
 	private EntityDao<Way> wayDao;
 	private EntityDao<Relation> relationDao;
+	private PointBuilder pointBuilder;
 
 
 	/**
@@ -64,7 +68,7 @@ public class ChangeDao {
 			}
 		};
 
-		wayDao = new EntityDao<Way>(dbCtx.getSimpleJdbcTemplate(), new WayMapper(), actionDao) {
+		wayDao = new EntityDao<Way>(dbCtx.getSimpleJdbcTemplate(), new WayWithLinestringMapper(), actionDao) {
 
 			@Override
 			protected List<FeaturePopulator<Way>> getFeaturePopulators(String tablePrefix) {
@@ -82,6 +86,7 @@ public class ChangeDao {
 
 		jdbcTemplate = dbCtx.getSimpleJdbcTemplate();
 		changeInsertStatement = dbCtx.getJdbcTemplate().getDataSource().getConnection().prepareStatement(INSERT_SQL);
+		pointBuilder = new PointBuilder();
 	}
 
 
@@ -95,21 +100,13 @@ public class ChangeDao {
 		changeInsertStatement.setLong(7, entity.getId());
 		changeInsertStatement.setObject(8, null);
 		changeInsertStatement.setObject(9, getTags(entity));
-		changeInsertStatement.setObject(10, null);
-
-		Entity oldEntity = null;
 
 		try {
 			if (entity.getType() == EntityType.Node) {
-				oldEntity = nodeDao.getEntity(entity.getId());
+				process((Node) entity);
 			} else if (entity.getType() == EntityType.Way) {
-				oldEntity = wayDao.getEntity(entity.getId());
+				process((Way) entity);
 			} else if (entity.getType() == EntityType.Relation) {
-				oldEntity = relationDao.getEntity(entity.getId());
-			}
-
-			if (oldEntity != null) {
-				changeInsertStatement.setObject(8, getTags(oldEntity));
 			}
 		} catch (NoSuchRecordException e) {
 		}
@@ -124,5 +121,35 @@ public class ChangeDao {
 			tags.put(tag.getKey(), tag.getValue());
 		}
 		return new PGHStore(tags);
+	}
+
+
+	protected void process(Node node) throws SQLException {
+		if (node.getVersion() > 1) {
+			Node oldNode = nodeDao.getEntity(node.getId());
+			changeInsertStatement.setObject(8, getTags(oldNode));
+			changeInsertStatement.setObject(11,
+					new PGgeometry(pointBuilder.createPoint(oldNode.getLatitude(), oldNode.getLongitude())));
+		}
+
+		changeInsertStatement.setObject(10,
+				new PGgeometry(pointBuilder.createPoint(node.getLatitude(), node.getLongitude())));
+	}
+
+
+	protected void process(Way way) throws SQLException {
+		if (way.getVersion() > 1) {
+			WayWithLinestring oldWay = (WayWithLinestring) wayDao.getEntity(way.getId());
+			changeInsertStatement.setObject(8, getTags(oldWay));
+
+			if (oldWay.getLineString() != null) {
+				if (oldWay.getLineString().getGeometry().numPoints() == 1) {
+					changeInsertStatement.setObject(10,
+							new PGgeometry(oldWay.getLineString().getGeometry().getPoint(0)));
+				} else {
+					changeInsertStatement.setObject(10, oldWay.getLineString());
+				}
+			}
+		}
 	}
 }
