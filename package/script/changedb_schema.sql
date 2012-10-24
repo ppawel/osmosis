@@ -37,8 +37,6 @@ ALTER TABLE ONLY changesets ADD CONSTRAINT pk_changesets PRIMARY KEY (id);
 DROP INDEX IF EXISTS idx_changes_changeset_id;
 CREATE INDEX idx_changes_changeset_id ON changes USING btree (changeset_id);
 
-
-
 DROP FUNCTION IF EXISTS Osmosis_ChangeDb_UpdateChangesetGeom(bigint);
 CREATE FUNCTION Osmosis_ChangeDb_UpdateChangesetGeom(bigint) RETURNS void AS $$
 DECLARE
@@ -51,11 +49,11 @@ changeset_geom := (
   FROM
   (
     SELECT (ST_Dump(old_geom)).geom FROM changes WHERE changeset_id = $1 AND element_type = 'Way'
-    UNION ALL
+    UNION
     SELECT (ST_Dump(new_geom)).geom FROM changes WHERE changeset_id = $1 AND element_type = 'Way'
-    UNION ALL
+    UNION
     SELECT ST_MakeLine(old_geom, old_geom) FROM changes WHERE changeset_id = $1 AND element_type = 'Node'
-    UNION ALL
+    UNION
     SELECT ST_MakeLine(new_geom, new_geom) FROM changes WHERE changeset_id = $1 AND element_type = 'Node'
   ) g);
 
