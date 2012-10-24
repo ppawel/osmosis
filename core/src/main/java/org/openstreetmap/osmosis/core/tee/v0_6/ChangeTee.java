@@ -2,6 +2,7 @@
 package org.openstreetmap.osmosis.core.tee.v0_6;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -87,7 +88,10 @@ public class ChangeTee implements ChangeSinkMultiChangeSource {
 	 * {@inheritDoc}
 	 */
 	public void complete() {
-		for (ProxyChangeSinkChangeSource sink : sinkList) {
+		// Reverse order - otherwise we hit https://jira.springsource.org/browse/SPR-7306
+		List<ProxyChangeSinkChangeSource> reverseSinkList = new ArrayList<ProxyChangeSinkChangeSource>(sinkList);
+		Collections.reverse(reverseSinkList);
+		for (ProxyChangeSinkChangeSource sink : reverseSinkList) {
 			sink.complete();
 		}
 	}
