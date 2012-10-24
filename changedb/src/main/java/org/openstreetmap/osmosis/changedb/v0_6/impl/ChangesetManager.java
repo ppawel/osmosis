@@ -4,6 +4,8 @@ package org.openstreetmap.osmosis.changedb.v0_6.impl;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -31,7 +33,7 @@ public class ChangesetManager implements Releasable {
 	private static final int MAX_CHANGESET_ID_CACHE_SIZE = 32768;
 
 	private static final String SQL_INSERT_CHANGESET = "INSERT INTO changesets"
-			+ " (id, user_id, created_at, closed_at, num_changes)" + " VALUES" + " (?, ?, NOW(), NOW(), 0)";
+			+ " (id, user_id, created_at, closed_at, num_changes)" + " VALUES" + " (?, ?, ?, NOW(), 0)";
 
 	private static final String SQL_UPDATE_CHANGESET_GEOM = "SELECT Osmosis_ChangeDb_UpdateChangesetGeom(?)";
 
@@ -122,7 +124,7 @@ public class ChangesetManager implements Releasable {
 	}
 
 
-	private void addChangeset(long changesetId, long userId) {
+	private void addChangeset(long changesetId, long userId, Date date) {
 		if (insertStatement == null) {
 			insertStatement = statementContainer.add(dbCtx.prepareStatement(SQL_INSERT_CHANGESET));
 		}
@@ -134,6 +136,7 @@ public class ChangesetManager implements Releasable {
 			prmIndex = 1;
 			insertStatement.setLong(prmIndex++, changesetId);
 			insertStatement.setLong(prmIndex++, userId);
+			insertStatement.setTimestamp(prmIndex++, new Timestamp(date.getTime()));
 			insertStatement.executeUpdate();
 
 			// Add the changeset to the cache, and trim the cache if required.
@@ -158,10 +161,11 @@ public class ChangesetManager implements Releasable {
 	 *            The changeset identifier.
 	 * @param user
 	 *            The user who created the changeset.
+	 * @param date
 	 */
-	public void addChangesetIfRequired(long changesetId, OsmUser user) {
+	public void addChangesetIfRequired(long changesetId, OsmUser user, Date date) {
 		if (!doesChangesetExist(changesetId)) {
-			addChangeset(changesetId, user.getId());
+			addChangeset(changesetId, user.getId(), date);
 		}
 	}
 

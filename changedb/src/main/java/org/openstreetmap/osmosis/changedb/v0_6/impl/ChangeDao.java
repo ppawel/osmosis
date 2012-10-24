@@ -28,7 +28,9 @@ import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.ActionDao;
 import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.EntityDao;
 import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.NodeMapper;
 import org.openstreetmap.osmosis.pgsnapshot.v0_6.impl.RelationMapper;
+import org.postgis.LineString;
 import org.postgis.PGgeometry;
+import org.postgis.Point;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
 
@@ -146,8 +148,11 @@ public class ChangeDao {
 
 			if (oldWay.getLineString() != null) {
 				if (oldWay.getLineString().getGeometry().numPoints() == 1) {
-					changeInsertStatement.setObject(10,
-							new PGgeometry(oldWay.getLineString().getGeometry().getPoint(0)));
+					LineString lineString = new LineString(new Point[] {
+							oldWay.getLineString().getGeometry().getPoint(0),
+							oldWay.getLineString().getGeometry().getPoint(0) });
+					lineString.setSrid(4326);
+					changeInsertStatement.setObject(10, new PGgeometry(lineString));
 				} else {
 					changeInsertStatement.setObject(10, oldWay.getLineString());
 				}

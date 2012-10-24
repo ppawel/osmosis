@@ -76,7 +76,8 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 		long changesetId = change.getEntityContainer().getEntity().getChangesetId();
 
 		seenChangesetIds.add(changesetId);
-		changesetManager.addChangesetIfRequired(changesetId, change.getEntityContainer().getEntity().getUser());
+		changesetManager.addChangesetIfRequired(changesetId, change.getEntityContainer().getEntity().getUser(), change
+				.getEntityContainer().getEntity().getTimestamp());
 
 		try {
 			changeDao.saveChange(change.getEntityContainer().getEntity(), change.getAction());
