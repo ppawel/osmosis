@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.openstreetmap.osmosis.core.OsmosisRuntimeException;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
@@ -27,7 +28,8 @@ import org.springframework.jdbc.core.SqlParameter;
  * @author Brett Henderson
  */
 public class ChangeWriter {
-	
+	private static final Logger LOG = Logger.getLogger(ChangeWriter.class.getName());
+
 	private DatabaseContext dbCtx;
 	private ActionDao actionDao;
 	private UserDao userDao;
@@ -35,8 +37,8 @@ public class ChangeWriter {
 	private WayDao wayDao;
 	private RelationDao relationDao;
 	private Set<Integer> userSet;
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -45,13 +47,13 @@ public class ChangeWriter {
 	 */
 	public ChangeWriter(DatabaseContext dbCtx) {
 		this.dbCtx = dbCtx;
-		
+
 		actionDao = new ActionDao(dbCtx);
 		userDao = new UserDao(dbCtx, actionDao);
 		nodeDao = new NodeDao(dbCtx, actionDao);
 		wayDao = new WayDao(dbCtx, actionDao);
 		relationDao = new RelationDao(dbCtx, actionDao);
-		
+
 		userSet = new HashSet<Integer>();
 	}
 
@@ -96,10 +98,10 @@ public class ChangeWriter {
 	private void processEntityPrerequisites(Entity entity) {
 		// We can't write an entity with a null timestamp.
 		if (entity.getTimestamp() == null) {
-			throw new OsmosisRuntimeException("Entity(" + entity.getType()
-					+ ") " + entity.getId() + " does not have a timestamp set.");
+			throw new OsmosisRuntimeException("Entity(" + entity.getType() + ") " + entity.getId()
+					+ " does not have a timestamp set.");
 		}
-		
+
 		// Process the user data.
 		writeUser(entity.getUser());
 	}
@@ -116,18 +118,26 @@ public class ChangeWriter {
 	public void write(Node node, ChangeAction action) {
 		processEntityPrerequisites(node);
 
+		Node existingNode = null;
+
+		if (!ChangeAction.Create.equals(action)) {
+			existingNode = nodeDao.getEntity(node.getId());
+		}
+
+		// LOG.info("Node " + node.getId() + ", version = " + node.getVersion()
+		// + (existingNode != null ? ", existing version = " +
+		// existingNode.getId() : ""));
+
 		// If this is a create or modify, we must create or modify the records
 		// in the database. Note that we don't use the input source to
 		// distinguish between create and modify, we make this determination
 		// based on our current data set.
-		if (ChangeAction.Create.equals(action)
-				|| ChangeAction.Modify.equals(action)) {
-			if (nodeDao.exists(node.getId())) {
+		if (ChangeAction.Create.equals(action) || ChangeAction.Modify.equals(action)) {
+			if (existingNode != null) {
 				nodeDao.modifyEntity(node);
 			} else {
 				nodeDao.addEntity(node);
 			}
-
 		} else {
 			// Remove the node from the database.
 			nodeDao.removeEntity(node.getId());
@@ -146,13 +156,18 @@ public class ChangeWriter {
 	public void write(Way way, ChangeAction action) {
 		processEntityPrerequisites(way);
 
+		Way existingWay = null;
+
+		if (!ChangeAction.Create.equals(action)) {
+			existingWay = wayDao.getEntity(way.getId());
+		}
+
 		// If this is a create or modify, we must create or modify the records
 		// in the database. Note that we don't use the input source to
 		// distinguish between create and modify, we make this determination
 		// based on our current data set.
-		if (ChangeAction.Create.equals(action)
-				|| ChangeAction.Modify.equals(action)) {
-			if (wayDao.exists(way.getId())) {
+		if (ChangeAction.Create.equals(action) || ChangeAction.Modify.equals(action)) {
+			if (existingWay != null) {
 				wayDao.modifyEntity(way);
 			} else {
 				wayDao.addEntity(way);
@@ -176,13 +191,18 @@ public class ChangeWriter {
 	public void write(Relation relation, ChangeAction action) {
 		processEntityPrerequisites(relation);
 
+		Relation existingRelation = null;
+
+		if (!ChangeAction.Create.equals(action)) {
+			existingRelation = relationDao.getEntity(relation.getId());
+		}
+
 		// If this is a create or modify, we must create or modify the records
 		// in the database. Note that we don't use the input source to
 		// distinguish between create and modify, we make this determination
 		// based on our current data set.
-		if (ChangeAction.Create.equals(action)
-				|| ChangeAction.Modify.equals(action)) {
-			if (relationDao.exists(relation.getId())) {
+		if (ChangeAction.Create.equals(action) || ChangeAction.Modify.equals(action)) {
+			if (existingRelation != null) {
 				relationDao.modifyEntity(relation);
 			} else {
 				relationDao.addEntity(relation);
@@ -199,14 +219,13 @@ public class ChangeWriter {
 	 * Performs post-change database updates.
 	 */
 	public void complete() {
-		dbCtx.getJdbcTemplate().call(
-				new CallableStatementCreator() {
-					@Override
-					public CallableStatement createCallableStatement(Connection con) throws SQLException {
-						return con.prepareCall("{call osmosisUpdate()}");
-					}
-				}, new ArrayList<SqlParameter>());
-		
+		dbCtx.getJdbcTemplate().call(new CallableStatementCreator() {
+			@Override
+			public CallableStatement createCallableStatement(Connection con) throws SQLException {
+				return con.prepareCall("{call osmosisUpdate()}");
+			}
+		}, new ArrayList<SqlParameter>());
+
 		// Clear all action records.
 		actionDao.truncate();
 	}

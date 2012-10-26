@@ -14,7 +14,7 @@ import org.openstreetmap.osmosis.owldb.v0_6.PostgreSqlTruncatorFactory;
 
 
 /**
- * The plugin loader for the PostgreSQL Snapshot Schema tasks.
+ * The plugin loader for the OWL Schema tasks.
  * 
  * @author Brett Henderson
  */
@@ -26,26 +26,27 @@ public class OwlDbPluginLoader implements PluginLoader {
 	@Override
 	public Map<String, TaskManagerFactory> loadTaskFactories() {
 		Map<String, TaskManagerFactory> factoryMap;
-		
+
 		factoryMap = new HashMap<String, TaskManagerFactory>();
-		
-		factoryMap.put("write-pgsql", new PostgreSqlCopyWriterFactory());
-		factoryMap.put("wp", new PostgreSqlCopyWriterFactory());
-		factoryMap.put("truncate-pgsql", new PostgreSqlTruncatorFactory());
-		factoryMap.put("tp", new PostgreSqlTruncatorFactory());
-		factoryMap.put("write-pgsql-dump", new PostgreSqlDumpWriterFactory());
-		factoryMap.put("wpd", new PostgreSqlDumpWriterFactory());
-		factoryMap.put("read-pgsql", new PostgreSqlDatasetReaderFactory());
-		factoryMap.put("rp", new PostgreSqlDatasetReaderFactory());
-		factoryMap.put("write-pgsql-change", new PostgreSqlChangeWriterFactory());
-		factoryMap.put("wpc", new PostgreSqlChangeWriterFactory());
-		
-		factoryMap.put("write-pgsql-0.6", new PostgreSqlCopyWriterFactory());
-		factoryMap.put("truncate-pgsql-0.6", new PostgreSqlTruncatorFactory());
-		factoryMap.put("write-pgsql-dump-0.6", new PostgreSqlDumpWriterFactory());
-		factoryMap.put("read-pgsql-0.6", new PostgreSqlDatasetReaderFactory());
-		factoryMap.put("write-pgsql-change-0.6", new PostgreSqlChangeWriterFactory());
-		
+
+		// factoryMap.put("write-owldb", new PostgreSqlCopyWriterFactory());
+		// factoryMap.put("wp", new PostgreSqlCopyWriterFactory());
+		// factoryMap.put("truncate-owldb", new PostgreSqlTruncatorFactory());
+		// factoryMap.put("tp", new PostgreSqlTruncatorFactory());
+		// factoryMap.put("write-owldb-dump", new
+		// PostgreSqlDumpWriterFactory());
+		// factoryMap.put("wpd", new PostgreSqlDumpWriterFactory());
+		// factoryMap.put("read-owldb", new PostgreSqlDatasetReaderFactory());
+		// factoryMap.put("rp", new PostgreSqlDatasetReaderFactory());
+		factoryMap.put("write-owldb-change", new PostgreSqlChangeWriterFactory());
+		factoryMap.put("woc", new PostgreSqlChangeWriterFactory());
+
+		factoryMap.put("write-owldb-0.6", new PostgreSqlCopyWriterFactory());
+		factoryMap.put("truncate-owldb-0.6", new PostgreSqlTruncatorFactory());
+		factoryMap.put("write-owldb-dump-0.6", new PostgreSqlDumpWriterFactory());
+		factoryMap.put("read-owldb-0.6", new PostgreSqlDatasetReaderFactory());
+		factoryMap.put("write-owldb-change-0.6", new PostgreSqlChangeWriterFactory());
+
 		return factoryMap;
 	}
 }
