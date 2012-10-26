@@ -26,11 +26,11 @@ public class WayRowMapper extends EntityRowMapper<Way> {
 		Array nodeIdArray;
 		Long[] nodeIds;
 		List<WayNode> wayNodes;
-		
+
 		way = new Way(mapCommonEntityData(rs));
-		
+
 		nodeIdArray = rs.getArray("nodes");
-		
+
 		if (nodeIdArray != null) {
 			nodeIds = (Long[]) nodeIdArray.getArray();
 			wayNodes = way.getWayNodes();
@@ -38,7 +38,9 @@ public class WayRowMapper extends EntityRowMapper<Way> {
 				wayNodes.add(new WayNode(nodeId));
 			}
 		}
-		
+
+		way.getMetaTags().put("linestring", rs.getObject("linestring"));
+
 		return way;
 	}
 }

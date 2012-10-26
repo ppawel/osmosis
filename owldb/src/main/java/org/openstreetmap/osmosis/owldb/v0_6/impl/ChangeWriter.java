@@ -31,6 +31,7 @@ public class ChangeWriter {
 	private static final Logger LOG = Logger.getLogger(ChangeWriter.class.getName());
 
 	private DatabaseContext dbCtx;
+	private ChangeManager changeManager;
 	private ActionDao actionDao;
 	private UserDao userDao;
 	private NodeDao nodeDao;
@@ -44,11 +45,13 @@ public class ChangeWriter {
 	 * 
 	 * @param dbCtx
 	 *            The database context to use for accessing the database.
+	 * @throws SQLException
 	 */
-	public ChangeWriter(DatabaseContext dbCtx) {
+	public ChangeWriter(DatabaseContext dbCtx) throws SQLException {
 		this.dbCtx = dbCtx;
 
 		actionDao = new ActionDao(dbCtx);
+		changeManager = new ChangeManager(dbCtx, actionDao);
 		userDao = new UserDao(dbCtx, actionDao);
 		nodeDao = new NodeDao(dbCtx, actionDao);
 		wayDao = new WayDao(dbCtx, actionDao);
@@ -114,8 +117,9 @@ public class ChangeWriter {
 	 *            The node to be written.
 	 * @param action
 	 *            The change to be applied.
+	 * @throws SQLException
 	 */
-	public void write(Node node, ChangeAction action) {
+	public void write(Node node, ChangeAction action) throws SQLException {
 		processEntityPrerequisites(node);
 
 		Node existingNode = null;
@@ -123,6 +127,8 @@ public class ChangeWriter {
 		if (!ChangeAction.Create.equals(action)) {
 			existingNode = nodeDao.getEntity(node.getId());
 		}
+
+		changeManager.process(action, existingNode, node);
 
 		// LOG.info("Node " + node.getId() + ", version = " + node.getVersion()
 		// + (existingNode != null ? ", existing version = " +
@@ -152,8 +158,9 @@ public class ChangeWriter {
 	 *            The way to be written.
 	 * @param action
 	 *            The change to be applied.
+	 * @throws SQLException
 	 */
-	public void write(Way way, ChangeAction action) {
+	public void write(Way way, ChangeAction action) throws SQLException {
 		processEntityPrerequisites(way);
 
 		Way existingWay = null;
@@ -161,6 +168,8 @@ public class ChangeWriter {
 		if (!ChangeAction.Create.equals(action)) {
 			existingWay = wayDao.getEntity(way.getId());
 		}
+
+		changeManager.process(action, existingWay, way);
 
 		// If this is a create or modify, we must create or modify the records
 		// in the database. Note that we don't use the input source to
@@ -187,8 +196,9 @@ public class ChangeWriter {
 	 *            The relation to be written.
 	 * @param action
 	 *            The change to be applied.
+	 * @throws SQLException
 	 */
-	public void write(Relation relation, ChangeAction action) {
+	public void write(Relation relation, ChangeAction action) throws SQLException {
 		processEntityPrerequisites(relation);
 
 		Relation existingRelation = null;
@@ -196,6 +206,8 @@ public class ChangeWriter {
 		if (!ChangeAction.Create.equals(action)) {
 			existingRelation = relationDao.getEntity(relation.getId());
 		}
+
+		changeManager.process(action, existingRelation, relation);
 
 		// If this is a create or modify, we must create or modify the records
 		// in the database. Note that we don't use the input source to

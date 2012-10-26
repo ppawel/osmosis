@@ -1,6 +1,8 @@
 // This software is released into the Public Domain.  See copying.txt for details.
 package org.openstreetmap.osmosis.owldb.v0_6;
 
+import java.sql.SQLException;
+
 import org.openstreetmap.osmosis.core.database.DatabaseLoginCredentials;
 import org.openstreetmap.osmosis.core.database.DatabasePreferences;
 import org.openstreetmap.osmosis.core.database.DatabaseTaskManagerFactory;
@@ -15,7 +17,7 @@ import org.openstreetmap.osmosis.core.pipeline.v0_6.ChangeSinkManager;
  * @author Brett Henderson
  */
 public class PostgreSqlChangeWriterFactory extends DatabaseTaskManagerFactory {
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -23,18 +25,19 @@ public class PostgreSqlChangeWriterFactory extends DatabaseTaskManagerFactory {
 	protected TaskManager createTaskManagerImpl(TaskConfiguration taskConfig) {
 		DatabaseLoginCredentials loginCredentials;
 		DatabasePreferences preferences;
-		
+
 		// Get the task arguments.
 		loginCredentials = getDatabaseLoginCredentials(taskConfig);
 		preferences = getDatabasePreferences(taskConfig);
-		
-		return new ChangeSinkManager(
-			taskConfig.getId(),
-			new PostgreSqlChangeWriter(
-				loginCredentials,
-				preferences
-			),
-			taskConfig.getPipeArgs()
-		);
+
+		try {
+			return new ChangeSinkManager(taskConfig.getId(), new PostgreSqlChangeWriter(loginCredentials, preferences),
+					taskConfig.getPipeArgs());
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 }

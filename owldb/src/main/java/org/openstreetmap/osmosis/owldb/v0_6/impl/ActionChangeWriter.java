@@ -1,6 +1,8 @@
 // This software is released into the Public Domain.  See copying.txt for details.
 package org.openstreetmap.osmosis.owldb.v0_6.impl;
 
+import java.sql.SQLException;
+
 import org.openstreetmap.osmosis.core.container.v0_6.BoundContainer;
 import org.openstreetmap.osmosis.core.container.v0_6.EntityProcessor;
 import org.openstreetmap.osmosis.core.container.v0_6.NodeContainer;
@@ -17,8 +19,8 @@ import org.openstreetmap.osmosis.core.task.common.ChangeAction;
 public class ActionChangeWriter implements EntityProcessor {
 	private ChangeWriter changeWriter;
 	private ChangeAction action;
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -31,36 +33,51 @@ public class ActionChangeWriter implements EntityProcessor {
 		this.changeWriter = changeWriter;
 		this.action = action;
 	}
-	
-	
+
+
 	/**
-     * {@inheritDoc}
-     */
-    public void process(BoundContainer bound) {
-        // Do nothing.
-    }
-    
-    
+	 * {@inheritDoc}
+	 */
+	public void process(BoundContainer bound) {
+		// Do nothing.
+	}
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	public void process(NodeContainer nodeContainer) {
-		changeWriter.write(nodeContainer.getEntity(), action);
+		try {
+			changeWriter.write(nodeContainer.getEntity(), action);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	public void process(WayContainer wayContainer) {
-		changeWriter.write(wayContainer.getEntity(), action);
+		try {
+			changeWriter.write(wayContainer.getEntity(), action);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	public void process(RelationContainer relationContainer) {
-		changeWriter.write(relationContainer.getEntity(), action);
+		try {
+			changeWriter.write(relationContainer.getEntity(), action);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 }

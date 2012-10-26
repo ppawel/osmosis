@@ -1,6 +1,7 @@
 // This software is released into the Public Domain.  See copying.txt for details.
 package org.openstreetmap.osmosis.owldb.v0_6;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,8 +40,9 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 	 *            Contains all information required to connect to the database.
 	 * @param preferences
 	 *            Contains preferences configuring database behaviour.
+	 * @throws SQLException 
 	 */
-	public PostgreSqlChangeWriter(DatabaseLoginCredentials loginCredentials, DatabasePreferences preferences) {
+	public PostgreSqlChangeWriter(DatabaseLoginCredentials loginCredentials, DatabasePreferences preferences) throws SQLException {
 		dbCtx = new DatabaseContext(loginCredentials);
 		changeWriter = new ChangeWriter(dbCtx);
 		actionWriterMap = new HashMap<ChangeAction, ActionChangeWriter>();
