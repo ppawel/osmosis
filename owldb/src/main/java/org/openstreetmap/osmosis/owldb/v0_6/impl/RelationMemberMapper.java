@@ -59,7 +59,7 @@ public class RelationMemberMapper extends EntityFeatureMapper<DbOrderedFeature<R
 				.append("s e ON f.").append(getParentEntityName()).append("_id = e.id");
 		}
 		if (filterByEntityId) {
-			resultSql.append(" WHERE entity_id = ?");
+			resultSql.append(" WHERE relation_id = ?");
 		}
 		if (orderBy) {
 			resultSql.append(getSqlDefaultOrderBy());
@@ -74,7 +74,7 @@ public class RelationMemberMapper extends EntityFeatureMapper<DbOrderedFeature<R
 	 */
 	@Override
 	public String getSqlDefaultOrderBy() {
-		return super.getSqlDefaultOrderBy() + ", sequence_id";
+		return " ORDER BY relation_id, sequence_id";
 	}
 	
 	

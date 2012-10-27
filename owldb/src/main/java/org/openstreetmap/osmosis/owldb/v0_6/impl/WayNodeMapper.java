@@ -14,7 +14,7 @@ import org.springframework.jdbc.core.RowMapper;
  * @author Brett Henderson
  */
 public class WayNodeMapper extends EntityFeatureMapper<DbOrderedFeature<WayNode>> {
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -22,8 +22,8 @@ public class WayNodeMapper extends EntityFeatureMapper<DbOrderedFeature<WayNode>
 	public String getParentEntityName() {
 		return "way";
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -31,39 +31,39 @@ public class WayNodeMapper extends EntityFeatureMapper<DbOrderedFeature<WayNode>
 	public String getEntityName() {
 		return "way_nodes";
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public String getSqlSelect(String tablePrefix, boolean filterByEntityId, boolean orderBy) {
 		StringBuilder resultSql;
-		
+
 		resultSql = new StringBuilder();
 		resultSql.append("SELECT way_id AS entity_id, node_id, sequence_id FROM ");
 		resultSql.append("way_nodes f");
 		if (!tablePrefix.isEmpty()) {
-			resultSql.append(" INNER JOIN ").append(tablePrefix).append(getParentEntityName())
-				.append("s e ON f.").append(getParentEntityName()).append("_id = e.id");
+			resultSql.append(" INNER JOIN ").append(tablePrefix).append(getParentEntityName()).append("s e ON f.")
+					.append(getParentEntityName()).append("_id = e.id");
 		}
 		if (filterByEntityId) {
-			resultSql.append(" WHERE entity_id = ?");
+			resultSql.append(" WHERE way_id = ?");
 		}
 		if (orderBy) {
 			resultSql.append(getSqlDefaultOrderBy());
 		}
-		
+
 		return resultSql.toString();
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public String getSqlDefaultOrderBy() {
-		return super.getSqlDefaultOrderBy() + ", sequence_id";
+		return " ORDER BY way_id, sequence_id";
 	}
 
 
@@ -73,7 +73,7 @@ public class WayNodeMapper extends EntityFeatureMapper<DbOrderedFeature<WayNode>
 	@Override
 	public String getSqlInsert(int rowCount) {
 		StringBuilder resultSql;
-		
+
 		resultSql = new StringBuilder();
 		resultSql.append("INSERT INTO way_nodes (");
 		resultSql.append("way_id, node_id, sequence_id) VALUES ");
@@ -83,24 +83,24 @@ public class WayNodeMapper extends EntityFeatureMapper<DbOrderedFeature<WayNode>
 			}
 			resultSql.append("(:wayId, :nodeId, :sequenceId)");
 		}
-		
+
 		return resultSql.toString();
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public String getSqlDelete(boolean filterByEntityId) {
 		StringBuilder resultSql;
-		
+
 		resultSql = new StringBuilder();
 		resultSql.append("DELETE FROM way_nodes");
 		if (filterByEntityId) {
 			resultSql.append(" WHERE ").append("way_id = ?");
 		}
-		
+
 		return resultSql.toString();
 	}
 

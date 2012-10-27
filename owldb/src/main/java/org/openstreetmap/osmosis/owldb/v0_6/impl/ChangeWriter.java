@@ -1,10 +1,7 @@
 // This software is released into the Public Domain.  See copying.txt for details.
 package org.openstreetmap.osmosis.owldb.v0_6.impl;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -18,8 +15,6 @@ import org.openstreetmap.osmosis.core.domain.v0_6.Way;
 import org.openstreetmap.osmosis.core.task.common.ChangeAction;
 import org.openstreetmap.osmosis.owldb.common.DatabaseContext;
 import org.openstreetmap.osmosis.owldb.common.NoSuchRecordException;
-import org.springframework.jdbc.core.CallableStatementCreator;
-import org.springframework.jdbc.core.SqlParameter;
 
 
 /**
@@ -124,9 +119,9 @@ public class ChangeWriter {
 
 		Node existingNode = null;
 
-		if (!ChangeAction.Create.equals(action)) {
-			existingNode = nodeDao.getEntity(node.getId());
-		}
+		// if (!ChangeAction.Create.equals(action)) {
+		existingNode = nodeDao.getEntity(node.getId());
+		// }
 
 		changeManager.process(action, existingNode, node);
 
@@ -165,9 +160,9 @@ public class ChangeWriter {
 
 		Way existingWay = null;
 
-		if (!ChangeAction.Create.equals(action)) {
-			existingWay = wayDao.getEntity(way.getId());
-		}
+		// if (!ChangeAction.Create.equals(action)) {
+		existingWay = wayDao.getEntity(way.getId());
+		// }
 
 		changeManager.process(action, existingWay, way);
 
@@ -203,9 +198,9 @@ public class ChangeWriter {
 
 		Relation existingRelation = null;
 
-		if (!ChangeAction.Create.equals(action)) {
-			existingRelation = relationDao.getEntity(relation.getId());
-		}
+		// if (!ChangeAction.Create.equals(action)) {
+		existingRelation = relationDao.getEntity(relation.getId());
+		// }
 
 		changeManager.process(action, existingRelation, relation);
 
@@ -231,15 +226,6 @@ public class ChangeWriter {
 	 * Performs post-change database updates.
 	 */
 	public void complete() {
-		dbCtx.getJdbcTemplate().call(new CallableStatementCreator() {
-			@Override
-			public CallableStatement createCallableStatement(Connection con) throws SQLException {
-				return con.prepareCall("{call osmosisUpdate()}");
-			}
-		}, new ArrayList<SqlParameter>());
-
-		// Clear all action records.
-		actionDao.truncate();
 	}
 
 

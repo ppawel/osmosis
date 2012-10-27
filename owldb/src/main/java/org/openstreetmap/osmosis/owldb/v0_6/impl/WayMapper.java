@@ -16,16 +16,17 @@ import org.springframework.jdbc.core.RowMapper;
  * @author Brett Henderson
  */
 public class WayMapper extends EntityMapper<Way> {
-	
+
 	private boolean supportBboxColumn;
 	private boolean supportLinestringColumn;
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 */
 	public WayMapper() {
 		supportBboxColumn = false;
+		supportLinestringColumn = true;
 	}
 
 
@@ -41,8 +42,8 @@ public class WayMapper extends EntityMapper<Way> {
 		this.supportBboxColumn = supportBboxColumn;
 		this.supportLinestringColumn = supportLinestringColumn;
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -50,8 +51,8 @@ public class WayMapper extends EntityMapper<Way> {
 	public String getEntityName() {
 		return "way";
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -59,8 +60,8 @@ public class WayMapper extends EntityMapper<Way> {
 	public ActionDataType getEntityType() {
 		return ActionDataType.WAY;
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -68,29 +69,30 @@ public class WayMapper extends EntityMapper<Way> {
 	public Class<Way> getEntityClass() {
 		return Way.class;
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	protected String[] getTypeSpecificFieldNames() {
 		List<String> fieldNames;
-		
+
 		fieldNames = new ArrayList<String>();
-		
+
 		fieldNames.add("nodes");
-		
+
 		if (supportBboxColumn) {
 			fieldNames.add("bbox");
 		}
 		if (supportLinestringColumn) {
 			fieldNames.add("linestring");
 		}
-		
-		return fieldNames.toArray(new String[]{});
+
+		return fieldNames.toArray(new String[] {});
 	}
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -98,16 +100,16 @@ public class WayMapper extends EntityMapper<Way> {
 	public void populateEntityParameters(Map<String, Object> args, Way entity) {
 		List<WayNode> wayNodes;
 		long[] nodeIds;
-		
+
 		populateCommonEntityParameters(args, entity);
-		
+
 		wayNodes = entity.getWayNodes();
-		
+
 		nodeIds = new long[wayNodes.size()];
 		for (int i = 0; i < nodeIds.length; i++) {
 			nodeIds[i] = wayNodes.get(i).getNodeId();
 		}
-		
+
 		args.put("nodes", new WayNodesArray(nodeIds));
 	}
 

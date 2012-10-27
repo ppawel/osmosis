@@ -34,16 +34,17 @@ public class ChangesetManager implements Releasable {
 	private static final String SQL_INSERT_CHANGESET = "INSERT INTO changesets"
 			+ " (id, user_id, created_at, closed_at, num_changes)" + " VALUES" + " (?, ?, ?, NOW(), 0)";
 
-	private static final String SQL_UPDATE_CHANGESET_GEOM = "SELECT Osmosis_ChangeDb_UpdateChangesetGeom(?)";
-
+	private static final String SQL_UPDATE_CHANGESET_GEOM = "SELECT OWL_UpdateChangesetGeom(?)";
+	private static final String SQL_UPDATE_CHANGESET_CHANGE_COUNT = "SELECT OWL_UpdateChangesetChangeCount(?)";
 	private static final String SQL_SELECT_CHANGESET_COUNT = "SELECT Count(*) AS changesetCount FROM changesets WHERE id = ?";
 
 	private final DatabaseContext dbCtx;
 	private final ReleasableContainer releasableContainer;
 	private final ReleasableStatementContainer statementContainer;
 	private PreparedStatement insertStatement;
-	private PreparedStatement selectCountStatement;
-	private PreparedStatement updateChangesetStatement;
+	private PreparedStatement changesetCountStatement;
+	private PreparedStatement updateChangesetChangeCountStatement;
+	private PreparedStatement updateChangesetGeomStatement;
 	private Set<Long> knownChangesetIds;
 
 
@@ -63,17 +64,11 @@ public class ChangesetManager implements Releasable {
 
 		knownChangesetIds = new LinkedHashSet<Long>(32768);
 
-		try {
-			insertStatement = statementContainer.add(dbCtx.getJdbcTemplate().getDataSource().getConnection()
-					.prepareStatement(SQL_INSERT_CHANGESET));
-			selectCountStatement = statementContainer.add(dbCtx.getJdbcTemplate().getDataSource().getConnection()
-					.prepareStatement(SQL_SELECT_CHANGESET_COUNT));
-			updateChangesetStatement = statementContainer.add(dbCtx.getJdbcTemplate().getDataSource().getConnection()
-					.prepareStatement(SQL_UPDATE_CHANGESET_GEOM));
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+		insertStatement = statementContainer.add(dbCtx.prepareStatement(SQL_INSERT_CHANGESET));
+		changesetCountStatement = statementContainer.add(dbCtx.prepareStatement(SQL_SELECT_CHANGESET_COUNT));
+		updateChangesetChangeCountStatement = statementContainer.add(dbCtx
+				.prepareStatement(SQL_UPDATE_CHANGESET_CHANGE_COUNT));
+		updateChangesetGeomStatement = statementContainer.add(dbCtx.prepareStatement(SQL_UPDATE_CHANGESET_GEOM));
 	}
 
 
@@ -115,9 +110,9 @@ public class ChangesetManager implements Releasable {
 
 			// Check if the changeset exists.
 			prmIndex = 1;
-			selectCountStatement.setLong(prmIndex++, changesetId);
+			changesetCountStatement.setLong(prmIndex++, changesetId);
 
-			changesetExists = readChangesetCount(selectCountStatement.executeQuery()) > 0;
+			changesetExists = readChangesetCount(changesetCountStatement.executeQuery()) > 0;
 
 			return changesetExists;
 
@@ -178,9 +173,11 @@ public class ChangesetManager implements Releasable {
 	}
 
 
-	public void updateChangesetGeometry(long changesetId) throws SQLException {
-		LOG.info("Updating changeset " + changesetId + " geometry");
-		updateChangesetStatement.setLong(1, changesetId);
-		updateChangesetStatement.execute();
+	public void updateChangeset(long changesetId) throws SQLException {
+		LOG.info("Updating changeset " + changesetId);
+		updateChangesetGeomStatement.setLong(1, changesetId);
+		updateChangesetGeomStatement.execute();
+		updateChangesetChangeCountStatement.setLong(1, changesetId);
+		updateChangesetChangeCountStatement.execute();
 	}
 }

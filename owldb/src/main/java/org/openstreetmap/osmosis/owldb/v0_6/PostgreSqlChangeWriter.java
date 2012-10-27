@@ -4,6 +4,8 @@ package org.openstreetmap.osmosis.owldb.v0_6;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.openstreetmap.osmosis.core.OsmosisRuntimeException;
 import org.openstreetmap.osmosis.core.container.v0_6.ChangeContainer;
@@ -32,6 +34,7 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 	private Map<ChangeAction, ActionChangeWriter> actionWriterMap;
 	private DatabaseContext dbCtx;
 	private SchemaVersionValidator schemaVersionValidator;
+	private Set<Long> seenChangesetIds;
 	private boolean initialized;
 
 
@@ -55,6 +58,7 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 		actionWriterMap.put(ChangeAction.Delete, new ActionChangeWriter(changeWriter, ChangeAction.Delete));
 
 		schemaVersionValidator = new SchemaVersionValidator(dbCtx.getSimpleJdbcTemplate(), preferences);
+		seenChangesetIds = new TreeSet<Long>();
 
 		initialized = false;
 	}
@@ -97,6 +101,8 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 		changesetManager.addChangesetIfRequired(change.getEntityContainer().getEntity().getChangesetId(), change
 				.getEntityContainer().getEntity().getUser(), change.getEntityContainer().getEntity().getTimestamp());
 
+		seenChangesetIds.add(change.getEntityContainer().getEntity().getChangesetId());
+
 		// Process the entity using the action writer appropriate for the change
 		// action.
 		change.getEntityContainer().process(actionWriterMap.get(action));
@@ -110,6 +116,15 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 		initialize();
 
 		changeWriter.complete();
+
+		for (Long changesetId : seenChangesetIds) {
+			try {
+				changesetManager.updateChangeset(changesetId);
+			} catch (SQLException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+		}
 
 		dbCtx.commitTransaction();
 	}

@@ -19,29 +19,21 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  * @author Brett Henderson
  */
 public class WayDao extends EntityDao<Way> {
-	
-	private static final String SQL_UPDATE_WAY_BBOX =
-		"UPDATE ways SET bbox = ("
-		+ " SELECT ST_Envelope(ST_Collect(geom))"
-		+ " FROM nodes JOIN way_nodes ON way_nodes.node_id = nodes.id"
-		+ " WHERE way_nodes.way_id = ways.id"
-		+ " )"
-		+ " WHERE ways.id = ?";
-	private static final String SQL_UPDATE_WAY_LINESTRING =
-		"UPDATE ways w SET linestring = ("
-		+ " SELECT ST_MakeLine(c.geom) AS way_line FROM ("
-		+ " SELECT n.geom AS geom FROM nodes n INNER JOIN way_nodes wn ON n.id = wn.node_id"
-		+ " WHERE (wn.way_id = w.id) ORDER BY wn.sequence_id"
-		+ " ) c"
-		+ " )"
-		+ " WHERE w.id  = ?";
-	
+
+	private static final String SQL_UPDATE_WAY_BBOX = "UPDATE ways SET bbox = ("
+			+ " SELECT ST_Envelope(ST_Collect(geom))" + " FROM nodes JOIN way_nodes ON way_nodes.node_id = nodes.id"
+			+ " WHERE way_nodes.way_id = ways.id" + " )" + " WHERE ways.id = ?";
+	private static final String SQL_UPDATE_WAY_LINESTRING = "UPDATE ways w SET linestring = ("
+			+ " SELECT ST_MakeLine(c.geom) AS way_line FROM ("
+			+ " SELECT n.geom AS geom FROM nodes n INNER JOIN way_nodes wn ON n.id = wn.node_id"
+			+ " WHERE (wn.way_id = w.id) ORDER BY wn.sequence_id" + " ) c" + " )" + " WHERE w.id  = ?";
+
 	private SimpleJdbcTemplate jdbcTemplate;
 	private DatabaseCapabilityChecker capabilityChecker;
 	private EntityFeatureDao<WayNode, DbOrderedFeature<WayNode>> wayNodeDao;
 	private WayNodeMapper wayNodeMapper;
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -52,30 +44,32 @@ public class WayDao extends EntityDao<Way> {
 	 */
 	public WayDao(DatabaseContext dbCtx, ActionDao actionDao) {
 		super(dbCtx.getSimpleJdbcTemplate(), new WayMapper(), actionDao);
-		
+
 		jdbcTemplate = dbCtx.getSimpleJdbcTemplate();
 		capabilityChecker = new DatabaseCapabilityChecker(dbCtx);
 		wayNodeMapper = new WayNodeMapper();
 		wayNodeDao = new EntityFeatureDao<WayNode, DbOrderedFeature<WayNode>>(jdbcTemplate, wayNodeMapper);
 	}
-	
-	
+
+
 	private void loadFeatures(long entityId, Way entity) {
 		entity.getWayNodes().addAll(wayNodeDao.getAllRaw(entityId));
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public Way getEntity(long entityId) {
 		Way entity;
-		
+
 		entity = super.getEntity(entityId);
-		
-		loadFeatures(entityId, entity);
-		
+
+		if (entity != null) {
+			loadFeatures(entityId, entity);
+		}
+
 		return entity;
 	}
 
@@ -90,17 +84,17 @@ public class WayDao extends EntityDao<Way> {
 	 */
 	private void addWayNodeList(long entityId, List<WayNode> wayNodeList) {
 		List<DbOrderedFeature<WayNode>> dbList;
-		
+
 		dbList = new ArrayList<DbOrderedFeature<WayNode>>(wayNodeList.size());
-		
+
 		for (int i = 0; i < wayNodeList.size(); i++) {
 			dbList.add(new DbOrderedFeature<WayNode>(entityId, wayNodeList.get(i), i));
 		}
-		
+
 		wayNodeDao.addAll(dbList);
 	}
-	
-	
+
+
 	/**
 	 * Updates the bounding box column for the specified way.
 	 * 
@@ -115,45 +109,45 @@ public class WayDao extends EntityDao<Way> {
 			jdbcTemplate.update(SQL_UPDATE_WAY_LINESTRING, wayId);
 		}
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public void addEntity(Way entity) {
 		super.addEntity(entity);
-		
+
 		addWayNodeList(entity.getId(), entity.getWayNodes());
-		
+
 		updateWayGeometries(entity.getId());
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public void modifyEntity(Way entity) {
 		long wayId;
-		
+
 		super.modifyEntity(entity);
-		
+
 		wayId = entity.getId();
 		wayNodeDao.removeList(wayId);
 		addWayNodeList(entity.getId(), entity.getWayNodes());
-		
+
 		updateWayGeometries(entity.getId());
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public void removeEntity(long entityId) {
 		wayNodeDao.removeList(entityId);
-		
+
 		super.removeEntity(entityId);
 	}
 
