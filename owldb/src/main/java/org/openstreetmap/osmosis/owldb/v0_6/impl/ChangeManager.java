@@ -18,16 +18,14 @@ import org.openstreetmap.osmosis.core.task.common.ChangeAction;
 import org.openstreetmap.osmosis.hstore.PGHStore;
 import org.openstreetmap.osmosis.owldb.common.DatabaseContext;
 import org.openstreetmap.osmosis.owldb.common.PointBuilder;
-import org.postgis.LineString;
 import org.postgis.PGgeometry;
-import org.postgis.Point;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
 
 public class ChangeManager {
 	private final static String INSERT_SQL = "INSERT INTO changes "
-			+ "(user_id, version, changeset_id, tstamp, action, element_type, element_id, old_tags, new_tags, old_geom, new_geom) VALUES "
-			+ "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			+ "(user_id, version, changeset_id, tstamp, action, change_type, el_type, el_id, tags, new_tags, geom, new_geom) VALUES "
+			+ "(?, ?, ?, ?, ?::action, ?::change_type, ?::element_type, ?, ?, ?, ?, ?)";
 
 	private SimpleJdbcTemplate jdbcTemplate;
 	private PreparedStatement changeInsertStatement;
@@ -82,13 +80,14 @@ public class ChangeManager {
 		changeInsertStatement.setInt(2, newEntity.getVersion());
 		changeInsertStatement.setLong(3, newEntity.getChangesetId());
 		changeInsertStatement.setTimestamp(4, new Timestamp(newEntity.getTimestamp().getTime()));
-		changeInsertStatement.setString(5, action.toString());
-		changeInsertStatement.setString(6, newEntity.getType().toString());
-		changeInsertStatement.setLong(7, newEntity.getId());
-		changeInsertStatement.setObject(8, null);
-		changeInsertStatement.setObject(9, getTags(newEntity));
-		changeInsertStatement.setObject(10, null);
+		changeInsertStatement.setString(5, action.toString().toUpperCase());
+		changeInsertStatement.setString(6, "CREATE");
+		changeInsertStatement.setString(7, newEntity.getType().toString().substring(0, 1));
+		changeInsertStatement.setLong(8, newEntity.getId());
+		changeInsertStatement.setObject(9, null);
+		changeInsertStatement.setObject(10, getTags(newEntity));
 		changeInsertStatement.setObject(11, null);
+		changeInsertStatement.setObject(12, null);
 	}
 
 
@@ -96,12 +95,12 @@ public class ChangeManager {
 		processCommon(action, existingNode, newNode);
 
 		if (action != ChangeAction.Create && existingNode != null) {
-			changeInsertStatement.setObject(8, getTags(existingNode));
-			changeInsertStatement.setObject(11,
+			changeInsertStatement.setObject(9, getTags(existingNode));
+			changeInsertStatement.setObject(12,
 					new PGgeometry(pointBuilder.createPoint(existingNode.getLatitude(), existingNode.getLongitude())));
 		}
 
-		changeInsertStatement.setObject(10,
+		changeInsertStatement.setObject(11,
 				new PGgeometry(pointBuilder.createPoint(newNode.getLatitude(), newNode.getLongitude())));
 
 		changeInsertStatement.executeUpdate();
@@ -112,7 +111,7 @@ public class ChangeManager {
 		processCommon(action, existingWay, newWay);
 
 		if (action != ChangeAction.Create && existingWay != null) {
-			changeInsertStatement.setObject(8, getTags(existingWay));
+			changeInsertStatement.setObject(9, getTags(existingWay));
 
 			PGgeometry linestring = (PGgeometry) existingWay.getMetaTags().get("linestring");
 
@@ -121,12 +120,9 @@ public class ChangeManager {
 			}
 
 			if (linestring.getGeometry().numPoints() == 1) {
-				LineString lineString = new LineString(new Point[] { linestring.getGeometry().getPoint(0),
-						linestring.getGeometry().getPoint(0) });
-				lineString.setSrid(4326);
-				changeInsertStatement.setObject(10, new PGgeometry(lineString));
+				changeInsertStatement.setObject(11, new PGgeometry(linestring.getGeometry().getPoint(0)));
 			} else {
-				changeInsertStatement.setObject(10, linestring);
+				changeInsertStatement.setObject(11, linestring);
 			}
 		}
 
