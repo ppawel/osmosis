@@ -142,12 +142,14 @@ public class ChangeManager {
 
 
 	public void process(ChangeAction action, Node existingNode, Node newNode) throws SQLException {
+		changeInsertStatement.clearParameters();
 		processCommon(action, existingNode, newNode);
 		changeInsertStatement.executeUpdate();
 	}
 
 
 	public void process(ChangeAction action, Way existingWay, Way newWay) throws SQLException {
+		changeInsertStatement.clearParameters();
 		processCommon(action, existingWay, newWay);
 		changeInsertStatement.executeUpdate();
 	}
