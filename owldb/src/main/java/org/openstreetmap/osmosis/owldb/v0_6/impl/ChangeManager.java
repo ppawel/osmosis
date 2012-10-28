@@ -95,6 +95,10 @@ public class ChangeManager {
 		changeInsertStatement.setBoolean(getParamIndex("changed_tags"), false);
 		changeInsertStatement.setBoolean(getParamIndex("changed_geom"), false);
 		changeInsertStatement.setBoolean(getParamIndex("changed_members"), false);
+		changeInsertStatement.setObject(getParamIndex("current_geom"), null);
+		changeInsertStatement.setObject(getParamIndex("current_tags"), null);
+		changeInsertStatement.setObject(getParamIndex("new_geom"), null);
+		changeInsertStatement.setObject(getParamIndex("new_tags"), null);
 
 		switch (action) {
 		case Create:
