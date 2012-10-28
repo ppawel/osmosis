@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.openstreetmap.osmosis.core.database.FeaturePopulator;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
@@ -23,6 +24,8 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
 
 public class ChangeManager {
+	private static final Logger LOG = Logger.getLogger(ChangeManager.class.getName());
+
 	private final static String INSERT_SQL = "INSERT INTO changes "
 			+ "(user_id, version, changeset_id, tstamp, action, change_type, el_type, el_id, tags, new_tags, geom, new_geom) VALUES "
 			+ "(?, ?, ?, ?, ?::action, ?::change_type, ?::element_type, ?, ?, ?, ?, ?)";
@@ -75,7 +78,7 @@ public class ChangeManager {
 	}
 
 
-	public void processCommon(ChangeAction action, Entity existingEntity, Entity newEntity) throws SQLException {
+	protected void processCommon(ChangeAction action, Entity existingEntity, Entity newEntity) throws SQLException {
 		changeInsertStatement.setInt(1, newEntity.getUser().getId());
 		changeInsertStatement.setInt(2, newEntity.getVersion());
 		changeInsertStatement.setLong(3, newEntity.getChangesetId());
@@ -115,14 +118,14 @@ public class ChangeManager {
 
 			PGgeometry linestring = (PGgeometry) existingWay.getMetaTags().get("linestring");
 
-			if (linestring == null) {
-				return;
-			}
-
-			if (linestring.getGeometry().numPoints() == 1) {
-				changeInsertStatement.setObject(11, new PGgeometry(linestring.getGeometry().getPoint(0)));
-			} else {
-				changeInsertStatement.setObject(11, linestring);
+			if (linestring != null) {
+				if (linestring.getGeometry().numPoints() == 1) {
+					// Yes - this happens in OSM data - lines with 1 point...
+					// Need to convert them to POINT geometry.
+					changeInsertStatement.setObject(11, new PGgeometry(linestring.getGeometry().getPoint(0)));
+				} else {
+					changeInsertStatement.setObject(11, linestring);
+				}
 			}
 		}
 

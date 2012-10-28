@@ -164,8 +164,6 @@ public class ChangeWriter {
 		existingWay = wayDao.getEntity(way.getId());
 		// }
 
-		changeManager.process(action, existingWay, way);
-
 		// If this is a create or modify, we must create or modify the records
 		// in the database. Note that we don't use the input source to
 		// distinguish between create and modify, we make this determination
@@ -177,10 +175,13 @@ public class ChangeWriter {
 				wayDao.addEntity(way);
 			}
 
+			way = wayDao.getEntity(way.getId());
 		} else {
 			// Remove the way from the database.
 			wayDao.removeEntity(way.getId());
 		}
+
+		changeManager.process(action, existingWay, way);
 	}
 
 

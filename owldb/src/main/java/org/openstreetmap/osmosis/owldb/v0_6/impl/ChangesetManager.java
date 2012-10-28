@@ -26,7 +26,6 @@ import org.openstreetmap.osmosis.owldb.common.DatabaseContext;
  * @author Brett Henderson
  */
 public class ChangesetManager implements Releasable {
-
 	private static final Logger LOG = Logger.getLogger(ChangesetManager.class.getName());
 
 	private static final int MAX_CHANGESET_ID_CACHE_SIZE = 32768;
