@@ -65,9 +65,10 @@ public class ChangesetManager implements Releasable {
 
 		insertStatement = statementContainer.add(dbCtx.prepareStatement(SQL_INSERT_CHANGESET));
 		changesetCountStatement = statementContainer.add(dbCtx.prepareStatement(SQL_SELECT_CHANGESET_COUNT));
-		updateChangesetChangeCountStatement = statementContainer.add(dbCtx
-				.prepareStatement(SQL_UPDATE_CHANGESET_CHANGE_COUNT));
-		updateChangesetGeomStatement = statementContainer.add(dbCtx.prepareStatement(SQL_UPDATE_CHANGESET_GEOM));
+		// updateChangesetChangeCountStatement = statementContainer.add(dbCtx
+		// .prepareStatement(SQL_UPDATE_CHANGESET_CHANGE_COUNT));
+		// updateChangesetGeomStatement =
+		// statementContainer.add(dbCtx.prepareStatement(SQL_UPDATE_CHANGESET_GEOM));
 	}
 
 
@@ -173,10 +174,10 @@ public class ChangesetManager implements Releasable {
 
 
 	public void updateChangeset(long changesetId) throws SQLException {
-		LOG.info("Updating changeset " + changesetId);
-		updateChangesetGeomStatement.setLong(1, changesetId);
-		updateChangesetGeomStatement.execute();
-		updateChangesetChangeCountStatement.setLong(1, changesetId);
-		updateChangesetChangeCountStatement.execute();
+		// LOG.info("Updating changeset " + changesetId);
+		// updateChangesetGeomStatement.setLong(1, changesetId);
+		// updateChangesetGeomStatement.execute();
+		// updateChangesetChangeCountStatement.setLong(1, changesetId);
+		// updateChangesetChangeCountStatement.execute();
 	}
 }
