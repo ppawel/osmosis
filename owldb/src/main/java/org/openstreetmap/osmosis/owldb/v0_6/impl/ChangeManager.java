@@ -4,13 +4,10 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.openstreetmap.osmosis.core.database.FeaturePopulator;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
 import org.openstreetmap.osmosis.core.domain.v0_6.EntityType;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
@@ -39,9 +36,6 @@ public class ChangeManager {
 
 	private SimpleJdbcTemplate jdbcTemplate;
 	private PreparedStatement changeInsertStatement;
-	private NodeDao nodeDao;
-	private WayDao wayDao;
-	private RelationDao relationDao;
 	private PointBuilder pointBuilder;
 
 
@@ -55,30 +49,6 @@ public class ChangeManager {
 	 * @throws SQLException
 	 */
 	public ChangeManager(DatabaseContext dbCtx, ActionDao actionDao) throws SQLException {
-		nodeDao = new NodeDao(dbCtx, actionDao) {
-
-			@Override
-			protected List<FeaturePopulator<Node>> getFeaturePopulators(String tablePrefix) {
-				return Collections.emptyList();
-			}
-		};
-
-		wayDao = new WayDao(dbCtx, actionDao) {
-
-			@Override
-			protected List<FeaturePopulator<Way>> getFeaturePopulators(String tablePrefix) {
-				return Collections.emptyList();
-			}
-		};
-
-		relationDao = new RelationDao(dbCtx, actionDao) {
-
-			@Override
-			protected List<FeaturePopulator<Relation>> getFeaturePopulators(String tablePrefix) {
-				return Collections.emptyList();
-			}
-		};
-
 		jdbcTemplate = dbCtx.getSimpleJdbcTemplate();
 		changeInsertStatement = dbCtx.getJdbcTemplate().getDataSource().getConnection().prepareStatement(INSERT_SQL);
 		pointBuilder = new PointBuilder();
