@@ -82,17 +82,38 @@ public class ChangeManager {
 		case Modify:
 			Map<String, String> currentTags = getTags(existingEntity);
 			Map<String, String> newTags = getTags(newEntity);
+			PGgeometry currentGeom = getGeom(existingEntity);
+			PGgeometry newGeom = getGeom(newEntity);
 
 			if (existingEntity != null) {
-				changeInsertStatement.setObject(getParamIndex("current_geom"), getGeom(existingEntity));
 				changeInsertStatement.setObject(getParamIndex("current_tags"), new PGHStore(currentTags));
+				changeInsertStatement.setObject(getParamIndex("current_geom"), currentGeom);
+
+				if (newTags.equals(currentTags)) {
+					// Tags did not change.
+					changeInsertStatement.setBoolean(getParamIndex("changed_tags"), false);
+				} else {
+					changeInsertStatement.setBoolean(getParamIndex("changed_tags"), true);
+					changeInsertStatement.setObject(getParamIndex("new_tags"), new PGHStore(newTags));
+				}
+
+				if (currentGeom != null && newGeom != null && newGeom.getGeometry().equals(currentGeom.getGeometry())) {
+					// Tags did not change.
+					changeInsertStatement.setBoolean(getParamIndex("changed_geom"), false);
+				} else {
+					changeInsertStatement.setBoolean(getParamIndex("changed_geom"), true);
+					changeInsertStatement.setObject(getParamIndex("new_geom"), newGeom);
+				}
+			} else {
+				// Degenerate case - current entity does not exist, this means
+				// that the database is not in the correct state. Let's just put
+				// some data in there.
+				changeInsertStatement.setObject(getParamIndex("new_geom"), newGeom);
+				changeInsertStatement.setObject(getParamIndex("new_tags"), new PGHStore(newTags));
+				changeInsertStatement.setBoolean(getParamIndex("changed_geom"), true);
+				changeInsertStatement.setBoolean(getParamIndex("changed_tags"), true);
 			}
 
-			changeInsertStatement.setObject(getParamIndex("new_geom"), getGeom(newEntity));
-			changeInsertStatement.setObject(getParamIndex("new_tags"), new PGHStore(newTags));
-
-			changeInsertStatement.setBoolean(getParamIndex("changed_tags"), !newTags.equals(currentTags));
-			changeInsertStatement.setBoolean(getParamIndex("changed_geom"), true);
 			changeInsertStatement.setBoolean(getParamIndex("changed_members"), newEntity.getType() != EntityType.Node);
 
 			break;
@@ -126,11 +147,17 @@ public class ChangeManager {
 
 
 	public void process(ChangeAction action, Relation existingRelation, Relation newRelation) throws SQLException {
-		// TODO
+		changeInsertStatement.clearParameters();
+		processCommon(action, existingRelation, newRelation);
+		changeInsertStatement.executeUpdate();
 	}
 
 
 	protected PGgeometry getGeom(Entity entity) {
+		if (entity == null) {
+			return null;
+		}
+
 		PGgeometry result = null;
 
 		if (entity.getType() == EntityType.Node) {
