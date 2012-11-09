@@ -98,7 +98,7 @@ public class ChangeManager {
 				}
 
 				if (currentGeom != null && newGeom != null && newGeom.getGeometry().equals(currentGeom.getGeometry())) {
-					// Tags did not change.
+					// Geom did not change.
 					changeInsertStatement.setBoolean(getParamIndex("changed_geom"), false);
 				} else {
 					changeInsertStatement.setBoolean(getParamIndex("changed_geom"), true);

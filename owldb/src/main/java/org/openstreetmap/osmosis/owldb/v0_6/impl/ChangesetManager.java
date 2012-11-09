@@ -33,8 +33,7 @@ public class ChangesetManager implements Releasable {
 	private static final String SQL_INSERT_CHANGESET = "INSERT INTO changesets"
 			+ " (id, user_id, created_at, closed_at, num_changes)" + " VALUES" + " (?, ?, ?, NOW(), 0)";
 
-	private static final String SQL_UPDATE_CHANGESET_GEOM = "SELECT OWL_UpdateChangesetGeom(?)";
-	private static final String SQL_UPDATE_CHANGESET_CHANGE_COUNT = "SELECT OWL_UpdateChangesetChangeCount(?)";
+	private static final String SQL_UPDATE_CHANGESET_CHANGE_COUNT = "SELECT OWL_UpdateChangeset(?)";
 	private static final String SQL_SELECT_CHANGESET_COUNT = "SELECT Count(*) AS changesetCount FROM changesets WHERE id = ?";
 
 	private final DatabaseContext dbCtx;
@@ -42,8 +41,7 @@ public class ChangesetManager implements Releasable {
 	private final ReleasableStatementContainer statementContainer;
 	private PreparedStatement insertStatement;
 	private PreparedStatement changesetCountStatement;
-	private PreparedStatement updateChangesetChangeCountStatement;
-	private PreparedStatement updateChangesetGeomStatement;
+	private PreparedStatement updateChangesetStatement;
 	private Set<Long> knownChangesetIds;
 
 
@@ -65,10 +63,7 @@ public class ChangesetManager implements Releasable {
 
 		insertStatement = statementContainer.add(dbCtx.prepareStatement(SQL_INSERT_CHANGESET));
 		changesetCountStatement = statementContainer.add(dbCtx.prepareStatement(SQL_SELECT_CHANGESET_COUNT));
-		updateChangesetChangeCountStatement = statementContainer.add(dbCtx
-				.prepareStatement(SQL_UPDATE_CHANGESET_CHANGE_COUNT));
-		// updateChangesetGeomStatement =
-		// statementContainer.add(dbCtx.prepareStatement(SQL_UPDATE_CHANGESET_GEOM));
+		updateChangesetStatement = statementContainer.add(dbCtx.prepareStatement(SQL_UPDATE_CHANGESET_CHANGE_COUNT));
 	}
 
 
@@ -175,9 +170,7 @@ public class ChangesetManager implements Releasable {
 
 	public void updateChangeset(long changesetId) throws SQLException {
 		LOG.info("Updating changeset " + changesetId);
-		// updateChangesetGeomStatement.setLong(1, changesetId);
-		// updateChangesetGeomStatement.execute();
-		updateChangesetChangeCountStatement.setLong(1, changesetId);
-		updateChangesetChangeCountStatement.execute();
+		updateChangesetStatement.setLong(1, changesetId);
+		updateChangesetStatement.execute();
 	}
 }
