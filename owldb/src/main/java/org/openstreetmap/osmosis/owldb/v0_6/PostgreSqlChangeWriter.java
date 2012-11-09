@@ -18,6 +18,7 @@ import org.openstreetmap.osmosis.owldb.common.SchemaVersionValidator;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.ActionChangeWriter;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.ChangeWriter;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.ChangesetManager;
+import org.openstreetmap.osmosis.owldb.v0_6.impl.InvalidActionsMode;
 
 
 /**
@@ -45,13 +46,14 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 	 *            Contains all information required to connect to the database.
 	 * @param preferences
 	 *            Contains preferences configuring database behaviour.
+	 * @param invalidActionsMode 
 	 * @throws SQLException
 	 */
-	public PostgreSqlChangeWriter(DatabaseLoginCredentials loginCredentials, DatabasePreferences preferences)
+	public PostgreSqlChangeWriter(DatabaseLoginCredentials loginCredentials, DatabasePreferences preferences, InvalidActionsMode invalidActionsMode)
 			throws SQLException {
 		dbCtx = new DatabaseContext(loginCredentials);
 		changesetManager = new ChangesetManager(dbCtx);
-		changeWriter = new ChangeWriter(dbCtx);
+		changeWriter = new ChangeWriter(dbCtx, invalidActionsMode);
 		actionWriterMap = new HashMap<ChangeAction, ActionChangeWriter>();
 		actionWriterMap.put(ChangeAction.Create, new ActionChangeWriter(changeWriter, ChangeAction.Create));
 		actionWriterMap.put(ChangeAction.Modify, new ActionChangeWriter(changeWriter, ChangeAction.Modify));

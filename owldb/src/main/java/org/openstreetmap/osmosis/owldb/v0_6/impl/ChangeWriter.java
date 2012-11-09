@@ -33,6 +33,7 @@ public class ChangeWriter {
 	private WayDao wayDao;
 	private RelationDao relationDao;
 	private Set<Integer> userSet;
+	private InvalidActionsMode invalidActionsMode;
 
 
 	/**
@@ -40,10 +41,14 @@ public class ChangeWriter {
 	 * 
 	 * @param dbCtx
 	 *            The database context to use for accessing the database.
+	 * @param invalidActionsMode
 	 * @throws SQLException
 	 */
-	public ChangeWriter(DatabaseContext dbCtx) throws SQLException {
+	public ChangeWriter(DatabaseContext dbCtx, InvalidActionsMode invalidActionsMode) throws SQLException {
 		this.dbCtx = dbCtx;
+		this.invalidActionsMode = invalidActionsMode;
+
+		LOG.info("invalidActionsMode = " + invalidActionsMode);
 
 		actionDao = new ActionDao(dbCtx);
 		changeManager = new ChangeManager(dbCtx, actionDao);
@@ -252,36 +257,50 @@ public class ChangeWriter {
 		switch (action) {
 		case Create:
 			if (existingEntity != null) {
-				// LOG.info(entity.getType() + " " + entity.getId() +
-				// " - Trying to create entity that already exists!");
+				handleInvalidAction(entity.getType() + " " + entity.getId()
+						+ " - Trying to create entity that already exists!");
 				return false;
 			}
 			break;
 
 		case Modify:
 			if (existingEntity == null) {
-				// LOG.info(entity.getType() + " " + entity.getId() +
-				// " - Trying to modify entity that does not exist!");
+				handleInvalidAction(entity.getType() + " " + entity.getId()
+						+ " - Trying to modify entity that does not exist!");
 				return false;
 			} else if (existingEntity.getVersion() != (entity.getVersion() - 1)) {
-				// LOG.info(entity.getType() + " " + entity.getId()
-				// +
-				// " - Trying to modify entity with wrong version (existing = "
-				// + existingEntity.getVersion()
-				// + ", new = " + entity.getVersion() + ")");
+				handleInvalidAction(entity.getType() + " " + entity.getId()
+						+ " - Trying to modify entity with wrong version (existing = " + existingEntity.getVersion()
+						+ ", new = " + entity.getVersion() + ")");
 				return false;
 			}
 			break;
 
 		case Delete:
 			if (existingEntity == null) {
-				// LOG.info(entity.getType() + " " + entity.getId() +
-				// " - Trying to delete entity that does not exist!");
+				handleInvalidAction(entity.getType() + " " + entity.getId()
+						+ " - Trying to delete entity that does not exist!");
 				return false;
 			}
 			break;
 		}
 
 		return true;
+	}
+
+
+	/**
+	 * Handles an invalid action according to {@link InvalidActionsMode}
+	 * setting.
+	 * 
+	 * @param message
+	 *            message to log or throw (or ignore)
+	 */
+	protected void handleInvalidAction(String message) {
+		if (invalidActionsMode == InvalidActionsMode.LOG) {
+			LOG.info(message);
+		} else if (invalidActionsMode == InvalidActionsMode.BREAK) {
+			throw new RuntimeException(message);
+		}
 	}
 }
