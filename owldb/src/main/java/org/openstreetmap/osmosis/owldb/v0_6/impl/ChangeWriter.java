@@ -123,11 +123,9 @@ public class ChangeWriter {
 		existingNode = nodeDao.getEntity(node.getId());
 		// }
 
-		changeManager.process(action, existingNode, node);
+		validateAction(action, existingNode, node);
 
-		// LOG.info("Node " + node.getId() + ", version = " + node.getVersion()
-		// + (existingNode != null ? ", existing version = " +
-		// existingNode.getId() : ""));
+		changeManager.process(action, existingNode, node);
 
 		// If this is a create or modify, we must create or modify the records
 		// in the database. Note that we don't use the input source to
@@ -163,6 +161,8 @@ public class ChangeWriter {
 		// if (!ChangeAction.Create.equals(action)) {
 		existingWay = wayDao.getEntity(way.getId());
 		// }
+
+		validateAction(action, existingWay, way);
 
 		// If this is a create or modify, we must create or modify the records
 		// in the database. Note that we don't use the input source to
@@ -203,6 +203,8 @@ public class ChangeWriter {
 		existingRelation = relationDao.getEntity(relation.getId());
 		// }
 
+		validateAction(action, existingRelation, relation);
+
 		changeManager.process(action, existingRelation, relation);
 
 		// If this is a create or modify, we must create or modify the records
@@ -235,5 +237,51 @@ public class ChangeWriter {
 	 */
 	public void release() {
 		// Nothing to do.
+	}
+
+
+	/**
+	 * Checks whether given action is consistent with current database state,
+	 * e.g. for modify action there must be existing version in the database.
+	 * 
+	 * @param action
+	 * @param existingEntity
+	 * @param entity
+	 */
+	protected boolean validateAction(ChangeAction action, Entity existingEntity, Entity entity) {
+		switch (action) {
+		case Create:
+			if (existingEntity != null) {
+				// LOG.info(entity.getType() + " " + entity.getId() +
+				// " - Trying to create entity that already exists!");
+				return false;
+			}
+			break;
+
+		case Modify:
+			if (existingEntity == null) {
+				// LOG.info(entity.getType() + " " + entity.getId() +
+				// " - Trying to modify entity that does not exist!");
+				return false;
+			} else if (existingEntity.getVersion() != (entity.getVersion() - 1)) {
+				// LOG.info(entity.getType() + " " + entity.getId()
+				// +
+				// " - Trying to modify entity with wrong version (existing = "
+				// + existingEntity.getVersion()
+				// + ", new = " + entity.getVersion() + ")");
+				return false;
+			}
+			break;
+
+		case Delete:
+			if (existingEntity == null) {
+				// LOG.info(entity.getType() + " " + entity.getId() +
+				// " - Trying to delete entity that does not exist!");
+				return false;
+			}
+			break;
+		}
+
+		return true;
 	}
 }
