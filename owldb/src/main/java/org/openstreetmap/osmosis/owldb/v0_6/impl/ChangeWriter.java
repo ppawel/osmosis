@@ -298,9 +298,9 @@ public class ChangeWriter {
 	 */
 	protected void handleInvalidAction(String message) {
 		if (invalidActionsMode == InvalidActionsMode.LOG) {
-			LOG.info(message);
+			LOG.info("Invalid action: " + message);
 		} else if (invalidActionsMode == InvalidActionsMode.BREAK) {
-			throw new RuntimeException(message);
+			throw new RuntimeException("Invalid action: " + message);
 		}
 	}
 }
