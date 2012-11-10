@@ -23,6 +23,7 @@ public class WayDao extends EntityDao<Way> {
 	private static final String SQL_UPDATE_WAY_BBOX = "UPDATE ways SET bbox = ("
 			+ " SELECT ST_Envelope(ST_Collect(geom))" + " FROM nodes JOIN way_nodes ON way_nodes.node_id = nodes.id"
 			+ " WHERE way_nodes.way_id = ways.id" + " )" + " WHERE ways.id = ?";
+
 	private static final String SQL_UPDATE_WAY_LINESTRING = "UPDATE ways w SET linestring = ("
 			+ " SELECT ST_MakeLine(c.geom) AS way_line FROM ("
 			+ " SELECT n.geom AS geom FROM nodes n INNER JOIN way_nodes wn ON n.id = wn.node_id"
