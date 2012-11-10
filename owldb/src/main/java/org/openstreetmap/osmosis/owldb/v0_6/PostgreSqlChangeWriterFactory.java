@@ -50,11 +50,12 @@ public class PostgreSqlChangeWriterFactory extends DatabaseTaskManagerFactory {
 	 */
 	protected InvalidActionsMode getInvalidActionsMode(TaskConfiguration configuration) {
 		InvalidActionsMode mode = InvalidActionsMode.IGNORE;
-		String arg = getStringArgument(configuration, "invalidActionsMode");
 
-		if (arg == null) {
+		if (!doesArgumentExist(configuration, "invalidActionsMode")) {
 			return mode;
 		}
+
+		String arg = getStringArgument(configuration, "invalidActionsMode");
 
 		if (arg.equalsIgnoreCase("log")) {
 			mode = InvalidActionsMode.LOG;
