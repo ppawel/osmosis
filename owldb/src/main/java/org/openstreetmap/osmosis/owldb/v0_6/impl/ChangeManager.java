@@ -18,7 +18,9 @@ import org.openstreetmap.osmosis.core.task.common.ChangeAction;
 import org.openstreetmap.osmosis.hstore.PGHStore;
 import org.openstreetmap.osmosis.owldb.common.DatabaseContext;
 import org.openstreetmap.osmosis.owldb.common.PointBuilder;
+import org.postgis.LineString;
 import org.postgis.PGgeometry;
+import org.postgis.Point;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.util.StringUtils;
 
@@ -170,8 +172,11 @@ public class ChangeManager {
 
 			if (result != null && result.getGeometry().numPoints() == 1) {
 				// Yes - this happens in OSM data - lines with 1 point...
-				// Need to convert them to POINT geometry.
-				result = new PGgeometry(result.getGeometry().getPoint(0));
+				// Need to convert them to a valid LINESTRING geometry by
+				// inserting a second point very close to the existing one.
+				Point point = result.getGeometry().getPoint(0);
+				result = new PGgeometry(new LineString(new Point[] { point,
+						new Point(point.getX() + 0.0000001, point.getY() + 0.0000001) }));
 			}
 		}
 
