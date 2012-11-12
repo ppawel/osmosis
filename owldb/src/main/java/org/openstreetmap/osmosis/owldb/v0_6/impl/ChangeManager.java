@@ -175,8 +175,10 @@ public class ChangeManager {
 				// Need to convert them to a valid LINESTRING geometry by
 				// inserting a second point very close to the existing one.
 				Point point = result.getGeometry().getPoint(0);
-				result = new PGgeometry(new LineString(new Point[] { point,
-						new Point(point.getX() + 0.0000001, point.getY() + 0.0000001) }));
+				LineString linestring = new LineString(new Point[] { point,
+						new Point(point.getX() + 0.0000001, point.getY() + 0.0000001) });
+				linestring.setSrid(4326);
+				result = new PGgeometry(linestring);
 			}
 		}
 
