@@ -31,7 +31,7 @@ public class ChangesetManager implements Releasable {
 	private static final int MAX_CHANGESET_ID_CACHE_SIZE = 32768;
 
 	private static final String SQL_INSERT_CHANGESET = "INSERT INTO changesets"
-			+ " (id, user_id, created_at, closed_at, num_changes)" + " VALUES" + " (?, ?, ?, NOW(), 0)";
+			+ " (id, user_id, created_at, closed_at)" + " VALUES" + " (?, ?, ?, NOW())";
 
 	private static final String SQL_UPDATE_CHANGESET_CHANGE_COUNT = "SELECT OWL_UpdateChangeset(?)";
 	private static final String SQL_SELECT_CHANGESET_COUNT = "SELECT Count(*) AS changesetCount FROM changesets WHERE id = ?";
