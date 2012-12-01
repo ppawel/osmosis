@@ -2,20 +2,18 @@
 package org.openstreetmap.osmosis.owldb.v0_6;
 
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.openstreetmap.osmosis.core.OsmosisRuntimeException;
 import org.openstreetmap.osmosis.core.container.v0_6.ChangeContainer;
 import org.openstreetmap.osmosis.core.database.DatabaseLoginCredentials;
 import org.openstreetmap.osmosis.core.database.DatabasePreferences;
+import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
 import org.openstreetmap.osmosis.core.task.common.ChangeAction;
 import org.openstreetmap.osmosis.core.task.v0_6.ChangeSink;
 import org.openstreetmap.osmosis.owldb.common.DatabaseContext;
 import org.openstreetmap.osmosis.owldb.common.SchemaVersionValidator;
-import org.openstreetmap.osmosis.owldb.v0_6.impl.ActionChangeWriter;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.ChangeWriter;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.ChangesetManager;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.InvalidActionsMode;
@@ -32,7 +30,6 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 
 	protected ChangesetManager changesetManager;
 	protected ChangeWriter changeWriter;
-	protected Map<ChangeAction, ActionChangeWriter> actionWriterMap;
 	protected DatabaseContext dbCtx;
 	private SchemaVersionValidator schemaVersionValidator;
 	private Set<Long> seenChangesetIds;
@@ -54,10 +51,6 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 		dbCtx = new DatabaseContext(loginCredentials);
 		changesetManager = new ChangesetManager(dbCtx);
 		changeWriter = new ChangeWriter(dbCtx, invalidActionsMode);
-		actionWriterMap = new HashMap<ChangeAction, ActionChangeWriter>();
-		actionWriterMap.put(ChangeAction.Create, new ActionChangeWriter(changeWriter, ChangeAction.Create));
-		actionWriterMap.put(ChangeAction.Modify, new ActionChangeWriter(changeWriter, ChangeAction.Modify));
-		actionWriterMap.put(ChangeAction.Delete, new ActionChangeWriter(changeWriter, ChangeAction.Delete));
 
 		schemaVersionValidator = new SchemaVersionValidator(dbCtx.getSimpleJdbcTemplate(), preferences);
 		seenChangesetIds = new TreeSet<Long>();
@@ -86,6 +79,11 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 	 * {@inheritDoc}
 	 */
 	public void process(ChangeContainer change) {
+		process(change, null);
+	}
+
+
+	protected void process(ChangeContainer change, Entity existingEntity) {
 		ChangeAction action;
 
 		initialize();
@@ -95,18 +93,17 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 
 		action = change.getAction();
 
-		if (!actionWriterMap.containsKey(action)) {
-			throw new OsmosisRuntimeException("The action " + action + " is unrecognized.");
-		}
-
 		changesetManager.addChangesetIfRequired(change.getEntityContainer().getEntity().getChangesetId(), change
 				.getEntityContainer().getEntity().getUser(), change.getEntityContainer().getEntity().getTimestamp());
 
 		seenChangesetIds.add(change.getEntityContainer().getEntity().getChangesetId());
 
-		// Process the entity using the action writer appropriate for the change
-		// action.
-		change.getEntityContainer().process(actionWriterMap.get(action));
+		try {
+			changeWriter.write(change.getEntityContainer().getEntity(), existingEntity, action);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 
