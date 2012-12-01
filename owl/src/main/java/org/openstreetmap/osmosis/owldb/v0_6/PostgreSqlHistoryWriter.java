@@ -29,6 +29,8 @@ public class PostgreSqlHistoryWriter extends PostgreSqlChangeWriter implements S
 
 	private EntityContainer previousEntityContainer;
 
+	private int count;
+
 
 	public PostgreSqlHistoryWriter(DatabaseLoginCredentials loginCredentials, DatabasePreferences preferences,
 			InvalidActionsMode invalidActionsMode) throws SQLException {
@@ -62,11 +64,15 @@ public class PostgreSqlHistoryWriter extends PostgreSqlChangeWriter implements S
 					&& previousEntity != null
 					&& (previousEntity.getVersion() == existingEntity.getVersion() + 1 || (previousEntity.getVersion() == 1 && previousEntity
 							.isVisible()))) {
-				LOG.info("Processing " + previousEntity);
+				// LOG.info("Processing " + previousEntity);
 
-				// process(new ChangeContainer(previousEntityContainer,
-				// ChangeAction.Create));
-				// super.complete();
+				process(new ChangeContainer(previousEntityContainer, ChangeAction.Create));
+				count++;
+
+				if (count % 1000 == 0) {
+					LOG.info("Committing... count = " + count);
+					super.complete();
+				}
 			}
 
 			existingEntity = nodeDao.getEntity(currentEntity.getId());
