@@ -64,7 +64,7 @@ public class PostgreSqlHistoryWriter extends PostgreSqlChangeWriter implements S
 					&& previousEntity != null
 					&& ((previousEntity.getVersion() == existingEntity.getVersion() + 1) || (previousEntity
 							.getVersion() == 1 && previousEntity.isVisible()))) {
-				LOG.info("Processing " + previousEntity);
+				// LOG.info("Processing " + previousEntity);
 
 				process(new ChangeContainer(previousEntityContainer, ChangeAction.Create), existingEntity);
 				count++;
