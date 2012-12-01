@@ -7,6 +7,7 @@ import java.util.Map;
 import org.openstreetmap.osmosis.core.pipeline.common.TaskManagerFactory;
 import org.openstreetmap.osmosis.core.plugin.PluginLoader;
 import org.openstreetmap.osmosis.owldb.v0_6.PostgreSqlChangeWriterFactory;
+import org.openstreetmap.osmosis.owldb.v0_6.PostgreSqlHistoryWriterFactory;
 
 
 /**
@@ -26,7 +27,7 @@ public class OwlDbPluginLoader implements PluginLoader {
 		factoryMap = new HashMap<String, TaskManagerFactory>();
 
 		factoryMap.put("write-owldb-change", new PostgreSqlChangeWriterFactory());
-		//factoryMap.put("write-owldb-history", new PostgreSqlCopyWriterFactory());
+		factoryMap.put("write-owldb-history", new PostgreSqlHistoryWriterFactory());
 
 		return factoryMap;
 	}

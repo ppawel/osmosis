@@ -20,10 +20,10 @@ import org.openstreetmap.osmosis.core.store.Storeable;
  * @author Brett Henderson
  */
 public abstract class Entity implements Storeable {
-	
+
 	private CommonEntityData entityData;
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -36,14 +36,15 @@ public abstract class Entity implements Storeable {
 	 * @param user
 	 *            The user that last modified this entity.
 	 * @param changesetId
-	 *            The id of the changeset that this version of the entity was created by.
+	 *            The id of the changeset that this version of the entity was
+	 *            created by.
 	 * @deprecated As of 0.40, replaced by Entity(entityData).
 	 */
 	public Entity(long id, int version, Date timestamp, OsmUser user, long changesetId) {
 		entityData = new CommonEntityData(id, version, timestamp, user, changesetId);
 	}
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -57,14 +58,15 @@ public abstract class Entity implements Storeable {
 	 * @param user
 	 *            The user that last modified this entity.
 	 * @param changesetId
-	 *            The id of the changeset that this version of the entity was created by.
+	 *            The id of the changeset that this version of the entity was
+	 *            created by.
 	 * @deprecated As of 0.40, replaced by Entity(entityData).
 	 */
 	public Entity(long id, int version, TimestampContainer timestampContainer, OsmUser user, long changesetId) {
 		entityData = new CommonEntityData(id, version, timestampContainer, user, changesetId);
 	}
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -77,7 +79,8 @@ public abstract class Entity implements Storeable {
 	 * @param user
 	 *            The user that last modified this entity.
 	 * @param changesetId
-	 *            The id of the changeset that this version of the entity was created by.
+	 *            The id of the changeset that this version of the entity was
+	 *            created by.
 	 * @param tags
 	 *            The tags to apply to the object.
 	 * @deprecated As of 0.40, replaced by Entity(entityData).
@@ -85,8 +88,8 @@ public abstract class Entity implements Storeable {
 	public Entity(long id, int version, Date timestamp, OsmUser user, long changesetId, Collection<Tag> tags) {
 		entityData = new CommonEntityData(id, version, timestamp, user, changesetId, tags);
 	}
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -100,7 +103,8 @@ public abstract class Entity implements Storeable {
 	 * @param user
 	 *            The user that last modified this entity.
 	 * @param changesetId
-	 *            The id of the changeset that this version of the entity was created by.
+	 *            The id of the changeset that this version of the entity was
+	 *            created by.
 	 * @param tags
 	 *            The tags to apply to the object.
 	 * @deprecated As of 0.40, replaced by Entity(entityData).
@@ -109,19 +113,20 @@ public abstract class Entity implements Storeable {
 			Collection<Tag> tags) {
 		entityData = new CommonEntityData(id, version, timestampContainer, user, changesetId, tags);
 	}
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
 	 * @param entityData
-	 *            The data to store in the entity. This instance is used directly and is not cloned.
+	 *            The data to store in the entity. This instance is used
+	 *            directly and is not cloned.
 	 */
 	public Entity(CommonEntityData entityData) {
 		this.entityData = entityData.getWriteableInstance();
 	}
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -131,8 +136,8 @@ public abstract class Entity implements Storeable {
 	protected Entity(Entity originalEntity) {
 		this.entityData = originalEntity.entityData.getWriteableInstance();
 	}
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -145,16 +150,16 @@ public abstract class Entity implements Storeable {
 	public Entity(StoreReader sr, StoreClassRegister scr) {
 		entityData = new CommonEntityData(sr, scr);
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	public void store(StoreWriter sw, StoreClassRegister scr) {
 		entityData.store(sw, scr);
 	}
-	
-	
+
+
 	/**
 	 * Compares the tags on this entity to the specified tags. The tag
 	 * comparison is based on a comparison of key and value in that order.
@@ -167,8 +172,8 @@ public abstract class Entity implements Storeable {
 	protected int compareTags(Collection<Tag> comparisonTags) {
 		return entityData.compareTags(comparisonTags);
 	}
-	
-	
+
+
 	/**
 	 * Returns the specific data type represented by this entity.
 	 * 
@@ -196,8 +201,8 @@ public abstract class Entity implements Storeable {
 	public void setId(long id) {
 		entityData.setId(id);
 	}
-	
-	
+
+
 	/**
 	 * Gets the version.
 	 * 
@@ -217,8 +222,8 @@ public abstract class Entity implements Storeable {
 	public void setVersion(int version) {
 		entityData.setVersion(version);
 	}
-	
-	
+
+
 	/**
 	 * Gets the timestamp in date form. This is the standard method for
 	 * retrieving timestamp information.
@@ -231,7 +236,8 @@ public abstract class Entity implements Storeable {
 
 
 	/**
-	 * Sets the timestamp in date form. This is the standard method of updating a timestamp.
+	 * Sets the timestamp in date form. This is the standard method of updating
+	 * a timestamp.
 	 * 
 	 * @param timestamp
 	 *            The timestamp.
@@ -239,8 +245,8 @@ public abstract class Entity implements Storeable {
 	public void setTimestamp(Date timestamp) {
 		entityData.setTimestamp(timestamp);
 	}
-	
-	
+
+
 	/**
 	 * Gets the timestamp container object which may hold the timestamp in a
 	 * different format. This is most useful if creating new copies of entities
@@ -252,12 +258,12 @@ public abstract class Entity implements Storeable {
 	public TimestampContainer getTimestampContainer() {
 		return entityData.getTimestampContainer();
 	}
-	
-	
+
+
 	/**
-	 * Sets the timestamp container object allowing the timestamp to be held in a different format.
-	 * This should be used if a date is already held in a timestamp container, or if date parsing
-	 * can be avoided.
+	 * Sets the timestamp container object allowing the timestamp to be held in
+	 * a different format. This should be used if a date is already held in a
+	 * timestamp container, or if date parsing can be avoided.
 	 * 
 	 * @param timestampContainer
 	 *            The timestamp container.
@@ -265,8 +271,8 @@ public abstract class Entity implements Storeable {
 	public void setTimestampContainer(TimestampContainer timestampContainer) {
 		entityData.setTimestampContainer(timestampContainer);
 	}
-	
-	
+
+
 	/**
 	 * Gets the timestamp in a string format. If the entity already contains a
 	 * string in string format it will return the original unparsed string
@@ -280,8 +286,8 @@ public abstract class Entity implements Storeable {
 	public String getFormattedTimestamp(TimestampFormat timestampFormat) {
 		return entityData.getFormattedTimestamp(timestampFormat);
 	}
-	
-	
+
+
 	/**
 	 * Returns the user who last edited the entity.
 	 * 
@@ -290,8 +296,8 @@ public abstract class Entity implements Storeable {
 	public OsmUser getUser() {
 		return entityData.getUser();
 	}
-	
-	
+
+
 	/**
 	 * Sets the last modification user.
 	 * 
@@ -301,20 +307,22 @@ public abstract class Entity implements Storeable {
 	public void setUser(OsmUser user) {
 		entityData.setUser(user);
 	}
-	
-	
+
+
 	/**
-	 * Gets the id of the changeset that this version of the entity was created by.
+	 * Gets the id of the changeset that this version of the entity was created
+	 * by.
 	 * 
 	 * @return The changeset id.
 	 */
 	public long getChangesetId() {
 		return entityData.getChangesetId();
 	}
-	
-	
+
+
 	/**
-	 * Sets the id of the changeset that this version of the entity was created by.
+	 * Sets the id of the changeset that this version of the entity was created
+	 * by.
 	 * 
 	 * @param changesetId
 	 *            The changeset id.
@@ -336,8 +344,8 @@ public abstract class Entity implements Storeable {
 
 
 	/**
-	 * Returns the attached meta tags. If the class is read-only, the collection will
-	 * be read-only.
+	 * Returns the attached meta tags. If the class is read-only, the collection
+	 * will be read-only.
 	 * 
 	 * @return The meta tags.
 	 */
@@ -368,9 +376,10 @@ public abstract class Entity implements Storeable {
 
 
 	/**
-	 * Configures the object to be read-only. This should be called if the object is to be processed
-	 * by multiple threads concurrently. It updates the read-only status of the object, and makes
-	 * all collections unmodifiable. This must be overridden by sub-classes to make their own
+	 * Configures the object to be read-only. This should be called if the
+	 * object is to be processed by multiple threads concurrently. It updates
+	 * the read-only status of the object, and makes all collections
+	 * unmodifiable. This must be overridden by sub-classes to make their own
 	 * collections unmodifiable.
 	 */
 	public void makeReadOnly() {
@@ -379,10 +388,16 @@ public abstract class Entity implements Storeable {
 
 
 	/**
-	 * Returns a writeable instance of this entity. If the object is read-only a clone is created,
-	 * if it is already writeable then this object is returned.
+	 * Returns a writeable instance of this entity. If the object is read-only a
+	 * clone is created, if it is already writeable then this object is
+	 * returned.
 	 * 
 	 * @return A writeable instance of this entity.
 	 */
 	public abstract Entity getWriteableInstance();
+
+
+	public boolean isVisible() {
+		return entityData.isVisible();
+	}
 }

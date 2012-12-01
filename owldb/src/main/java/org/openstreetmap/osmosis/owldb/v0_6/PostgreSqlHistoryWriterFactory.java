@@ -8,16 +8,16 @@ import org.openstreetmap.osmosis.core.database.DatabasePreferences;
 import org.openstreetmap.osmosis.core.database.DatabaseTaskManagerFactory;
 import org.openstreetmap.osmosis.core.pipeline.common.TaskConfiguration;
 import org.openstreetmap.osmosis.core.pipeline.common.TaskManager;
-import org.openstreetmap.osmosis.core.pipeline.v0_6.ChangeSinkManager;
+import org.openstreetmap.osmosis.core.pipeline.v0_6.SinkManager;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.InvalidActionsMode;
 
 
 /**
- * The task manager factory for a database change writer.
+ * The task manager factory for a database history writer.
  * 
  * @author Paweł Paprota
  */
-public class PostgreSqlChangeWriterFactory extends DatabaseTaskManagerFactory {
+public class PostgreSqlHistoryWriterFactory extends DatabaseTaskManagerFactory {
 
 	/**
 	 * {@inheritDoc}
@@ -32,7 +32,7 @@ public class PostgreSqlChangeWriterFactory extends DatabaseTaskManagerFactory {
 		preferences = getDatabasePreferences(taskConfig);
 
 		try {
-			return new ChangeSinkManager(taskConfig.getId(), new PostgreSqlChangeWriter(loginCredentials, preferences,
+			return new SinkManager(taskConfig.getId(), new PostgreSqlHistoryWriter(loginCredentials, preferences,
 					getInvalidActionsMode(taskConfig)), taskConfig.getPipeArgs());
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
