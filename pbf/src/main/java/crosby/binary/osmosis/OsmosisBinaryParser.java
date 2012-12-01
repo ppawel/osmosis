@@ -228,7 +228,7 @@ public class OsmosisBinaryParser extends BinaryParser {
             if (s.equals("DenseNodes")) {
               continue; // We can parse this.
             }
-           throw new OsmosisRuntimeException("File requires unknown feature: " + s);
+           //throw new OsmosisRuntimeException("File requires unknown feature: " + s);
         }
         
         if (block.hasBbox()) {
