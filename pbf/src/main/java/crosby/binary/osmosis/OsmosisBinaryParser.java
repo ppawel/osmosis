@@ -72,7 +72,7 @@ public class OsmosisBinaryParser extends BinaryParser {
         if (i.hasInfo()) {
           Osmformat.Info info = i.getInfo();
           tmp = new Node(new CommonEntityData(id, info.getVersion(), getDate(info),
-              getUser(info), info.getChangeset(), tags), latf, lonf);
+              getUser(info), info.getChangeset(), tags, info.getVisible()), latf, lonf);
         } else {
           tmp = new Node(new CommonEntityData(id, NOVERSION, NODATE, OsmUser.NONE,
               NOCHANGESET, tags), latf, lonf);
@@ -130,7 +130,7 @@ public class OsmosisBinaryParser extends BinaryParser {
               } else {
                 user = new OsmUser(uid, getStringById(userSid));
               }
-              tmp = new Node(new CommonEntityData(id, version, date, user, changeset, tags), latf, lonf);
+              tmp = new Node(new CommonEntityData(id, version, date, user, changeset, tags, di.getVisible(i)), latf, lonf);
             } else {
                 tmp = new Node(new CommonEntityData(id, NOVERSION, NODATE, OsmUser.NONE,
                         NOCHANGESET, tags), latf, lonf);
@@ -163,7 +163,7 @@ public class OsmosisBinaryParser extends BinaryParser {
             if (i.hasInfo()) {
                 Osmformat.Info info = i.getInfo();
                 tmp = new Way(new CommonEntityData(id, info.getVersion(), getDate(info),
-                        getUser(info), info.getChangeset(), tags), nodes);
+                        getUser(info), info.getChangeset(), tags, info.getVisible()), nodes);
             } else {
                 tmp = new Way(new CommonEntityData(id, NOVERSION, NODATE, OsmUser.NONE, NOCHANGESET,
                         tags), nodes);
@@ -210,7 +210,7 @@ public class OsmosisBinaryParser extends BinaryParser {
             if (i.hasInfo()) {
                 Osmformat.Info info = i.getInfo();
                 tmp = new Relation(new CommonEntityData(id, info.getVersion(), getDate(info),
-                        getUser(info), info.getChangeset(), tags), nodes);
+                        getUser(info), info.getChangeset(), tags, info.getVisible()), nodes);
             } else {
                 tmp = new Relation(new CommonEntityData(id, NOVERSION, NODATE, OsmUser.NONE,
                         NOCHANGESET, tags), nodes);
