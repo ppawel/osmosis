@@ -4,10 +4,12 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.openstreetmap.osmosis.core.container.v0_6.ChangeContainer;
 import org.openstreetmap.osmosis.core.container.v0_6.EntityContainer;
 import org.openstreetmap.osmosis.core.database.DatabaseLoginCredentials;
 import org.openstreetmap.osmosis.core.database.DatabasePreferences;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
+import org.openstreetmap.osmosis.core.task.common.ChangeAction;
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.ActionDao;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.InvalidActionsMode;
@@ -25,6 +27,8 @@ public class PostgreSqlHistoryWriter extends PostgreSqlChangeWriter implements S
 
 	private Entity previousEntity;
 
+	private EntityContainer previousEntityContainer;
+
 
 	public PostgreSqlHistoryWriter(DatabaseLoginCredentials loginCredentials, DatabasePreferences preferences,
 			InvalidActionsMode invalidActionsMode) throws SQLException {
@@ -36,19 +40,16 @@ public class PostgreSqlHistoryWriter extends PostgreSqlChangeWriter implements S
 
 	@Override
 	public void initialize(Map<String, Object> metaData) {
-		super.initialize(metaData);
 	}
 
 
 	@Override
 	public void complete() {
-		super.complete();
 	}
 
 
 	@Override
 	public void release() {
-		super.release();
 	}
 
 
@@ -56,18 +57,26 @@ public class PostgreSqlHistoryWriter extends PostgreSqlChangeWriter implements S
 	public void process(EntityContainer entityContainer) {
 		Entity currentEntity = entityContainer.getEntity();
 
-		if (previousEntity == null) {
-			previousEntity = currentEntity;
-		}
+		if (previousEntity == null || (previousEntity.isVisible() && currentEntity.getId() != previousEntity.getId())) {
+			if (existingEntity != null
+					&& previousEntity != null
+					&& (previousEntity.getVersion() == existingEntity.getVersion() + 1 || (previousEntity.getVersion() == 1 && previousEntity
+							.isVisible()))) {
+				LOG.info("Processing " + previousEntity);
 
-		if (currentEntity.getId() != previousEntity.getId()) {
-			if (previousEntity.isVisible()) {
-				existingEntity = nodeDao.getEntity(previousEntity.getId());
-				LOG.info(previousEntity.getId() + " " + previousEntity.getVersion() + " (existing " + existingEntity
-						+ ") " + previousEntity.isVisible());
+				// process(new ChangeContainer(previousEntityContainer,
+				// ChangeAction.Create));
+				// super.complete();
 			}
+
+			existingEntity = nodeDao.getEntity(currentEntity.getId());
+			// LOG.info(previousEntity.getId() + " " +
+			// previousEntity.getVersion() + " (existing " + existingEntity +
+			// ") "
+			// + previousEntity.isVisible());
 		}
 
 		previousEntity = currentEntity;
+		previousEntityContainer = entityContainer;
 	}
 }

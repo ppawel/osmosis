@@ -66,10 +66,9 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 	}
 
 
-	private void initialize() {
+	protected void initialize() {
 		if (!initialized) {
 			dbCtx.beginTransaction();
-
 			initialized = true;
 		}
 	}
@@ -129,6 +128,7 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 		}
 
 		dbCtx.commitTransaction();
+		initialized = false;
 	}
 
 
