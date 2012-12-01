@@ -125,7 +125,7 @@ public class PbfBlobDecoder implements Runnable {
 		// until now so that we can display all unsupported features instead of
 		// just the first one we encounter.
 		if (unsupportedFeatures.size() > 0) {
-			throw new OsmosisRuntimeException("PBF file contains unsupported features " + unsupportedFeatures);
+			//throw new OsmosisRuntimeException("PBF file contains unsupported features " + unsupportedFeatures);
 		}
 
 		// Build a new bound object which corresponds to the header.
@@ -448,6 +448,7 @@ public class PbfBlobDecoder implements Runnable {
 			listener.complete(decodedEntities);
 
 		} catch (RuntimeException e) {
+			e.printStackTrace();
 			listener.error();
 		}
 	}
