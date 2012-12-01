@@ -26,14 +26,14 @@ import org.openstreetmap.osmosis.owldb.v0_6.impl.InvalidActionsMode;
  * running at regular intervals with database overhead proportional to changeset
  * size.
  * 
- * @author Brett Henderson
+ * @author Paweł Paprota
  */
 public class PostgreSqlChangeWriter implements ChangeSink {
 
-	private ChangesetManager changesetManager;
-	private ChangeWriter changeWriter;
-	private Map<ChangeAction, ActionChangeWriter> actionWriterMap;
-	private DatabaseContext dbCtx;
+	protected ChangesetManager changesetManager;
+	protected ChangeWriter changeWriter;
+	protected Map<ChangeAction, ActionChangeWriter> actionWriterMap;
+	protected DatabaseContext dbCtx;
 	private SchemaVersionValidator schemaVersionValidator;
 	private Set<Long> seenChangesetIds;
 	private boolean initialized;
@@ -46,11 +46,11 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 	 *            Contains all information required to connect to the database.
 	 * @param preferences
 	 *            Contains preferences configuring database behaviour.
-	 * @param invalidActionsMode 
+	 * @param invalidActionsMode
 	 * @throws SQLException
 	 */
-	public PostgreSqlChangeWriter(DatabaseLoginCredentials loginCredentials, DatabasePreferences preferences, InvalidActionsMode invalidActionsMode)
-			throws SQLException {
+	public PostgreSqlChangeWriter(DatabaseLoginCredentials loginCredentials, DatabasePreferences preferences,
+			InvalidActionsMode invalidActionsMode) throws SQLException {
 		dbCtx = new DatabaseContext(loginCredentials);
 		changesetManager = new ChangesetManager(dbCtx);
 		changeWriter = new ChangeWriter(dbCtx, invalidActionsMode);

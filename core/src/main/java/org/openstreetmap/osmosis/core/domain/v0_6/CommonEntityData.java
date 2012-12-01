@@ -132,11 +132,10 @@ public class CommonEntityData implements Storeable {
 	}
 
 
-	public CommonEntityData(long id, int version, TimestampContainer timestampContainer, OsmUser user,
-			long changesetId, Collection<Tag> tags, boolean visible) {
-		init(id, timestampContainer, user, version, changesetId);
-		this.tags = new TagCollectionImpl(tags);
-		metaTags = new LazyHashMap<String, Object>();
+	public CommonEntityData(long id, int version, Date timestamp, OsmUser user, long changesetId, Collection<Tag> tags,
+			boolean visible) {
+		// Chain to the more specific constructor
+		this(id, version, new SimpleTimestampContainer(timestamp), user, changesetId, tags);
 		this.visible = visible;
 	}
 
