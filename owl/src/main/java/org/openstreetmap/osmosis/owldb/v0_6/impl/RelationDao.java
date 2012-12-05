@@ -124,10 +124,10 @@ public class RelationDao extends EntityDao<Relation> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void removeEntity(long entityId, int version) {
-		relationMemberDao.removeList(entityId);
+	public void removeEntity(Relation entity) {
+		relationMemberDao.removeList(entity.getId());
 
-		super.removeEntity(entityId, version);
+		super.removeEntity(entity);
 	}
 
 

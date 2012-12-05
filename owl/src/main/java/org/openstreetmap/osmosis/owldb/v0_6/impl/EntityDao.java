@@ -65,7 +65,8 @@ public abstract class EntityDao<T extends Entity> {
 	 * 
 	 * @param entityId
 	 *            The unique identifier of the entity.
-	 * @param version TODO
+	 * @param version
+	 *            TODO
 	 * @return True if the entity exists in the database.
 	 */
 	public boolean exists(long entityId, int version) {
@@ -117,7 +118,7 @@ public abstract class EntityDao<T extends Entity> {
 		args = new HashMap<String, Object>();
 		entityMapper.populateEntityParameters(args, entity);
 
-		jdbcTemplate.update(entityMapper.getSqlUpdate(true), args);
+		jdbcTemplate.update(entityMapper.getSqlInsert(1), args);
 
 		actionDao.addAction(entityMapper.getEntityType(), ChangesetAction.MODIFY, entity.getId());
 	}
@@ -126,21 +127,20 @@ public abstract class EntityDao<T extends Entity> {
 	/**
 	 * Removes the specified entity from the database.
 	 * 
-	 * @param entityId
-	 *            The id of the entity to remove.
-	 * @param version
-	 *            The version of the entity to remove.
+	 * @param entity
+	 *            The entity to remove.
 	 */
-	public void removeEntity(long entityId, int version) {
+	public void removeEntity(T entity) {
 		Map<String, Object> args;
 
 		args = new HashMap<String, Object>();
-		args.put("id", entityId);
-		args.put("version", version);
+		args.put("id", entity.getId());
+		args.put("version", entity.getVersion());
+		entityMapper.populateEntityParameters(args, entity);
 
-		jdbcTemplate.update(entityMapper.getSqlDelete(true), args);
+		jdbcTemplate.update(entityMapper.getSqlInsert(1), args);
 
-		actionDao.addAction(entityMapper.getEntityType(), ChangesetAction.DELETE, entityId);
+		actionDao.addAction(entityMapper.getEntityType(), ChangesetAction.DELETE, entity.getId());
 	}
 
 

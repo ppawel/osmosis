@@ -150,7 +150,7 @@ public class ChangeWriter {
 		} else if (action == ChangeAction.Modify && !nodeDao.exists(newNode.getId(), newNode.getVersion())) {
 			nodeDao.modifyEntity(newNode);
 		} else if (action == ChangeAction.Delete) {
-			nodeDao.removeEntity(newNode.getId(), newNode.getVersion());
+			nodeDao.removeEntity(newNode);
 		}
 	}
 
@@ -163,7 +163,7 @@ public class ChangeWriter {
 		} else if (action == ChangeAction.Modify && !wayDao.exists(newWay.getId(), newWay.getVersion())) {
 			wayDao.modifyEntity(newWay);
 		} else if (action == ChangeAction.Delete) {
-			wayDao.removeEntity(newWay.getId(), newWay.getVersion());
+			wayDao.removeEntity(newWay);
 		}
 	}
 
@@ -177,7 +177,7 @@ public class ChangeWriter {
 		} else if (action == ChangeAction.Modify && !relationDao.exists(newRelation.getId(), newRelation.getVersion())) {
 			relationDao.modifyEntity(newRelation);
 		} else if (action == ChangeAction.Delete) {
-			relationDao.removeEntity(newRelation.getId(), newRelation.getVersion());
+			relationDao.removeEntity(newRelation);
 		}
 	}
 

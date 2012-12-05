@@ -16,31 +16,22 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  * @author Brett Henderson
  */
 public class NodeDao extends EntityDao<Node> {
-	private static final String SQL_UPDATE_WAY_BBOX =
-		"UPDATE ways w SET bbox = ("
-		+ " SELECT ST_Envelope(ST_Collect(n.geom))"
-		+ " FROM nodes n INNER JOIN way_nodes wn ON wn.node_id = n.id"
-		+ " WHERE wn.way_id = w.id"
-		+ " )"
-		+ " WHERE w.id IN ("
-		+ " SELECT w.id FROM ways w INNER JOIN way_nodes wn ON w.id = wn.way_id WHERE wn.node_id = ? GROUP BY w.id"
-		+ " )";
-	private static final String SQL_UPDATE_WAY_LINESTRING =
-		"UPDATE ways w SET linestring = ("
-		+ " SELECT ST_MakeLine(c.geom) AS way_line FROM ("
-		+ " SELECT n.geom AS geom FROM nodes n INNER JOIN way_nodes wn ON n.id = wn.node_id"
-		+ " WHERE (wn.way_id = w.id) ORDER BY wn.sequence_id"
-		+ " ) c"
-		+ " )"
-		+ " WHERE w.id IN ("
-		+ " SELECT w.id FROM ways w INNER JOIN way_nodes wn ON w.id = wn.way_id WHERE wn.node_id = ? GROUP BY w.id"
-		+ " )";
-	
-	
+	private static final String SQL_UPDATE_WAY_BBOX = "UPDATE ways w SET bbox = ("
+			+ " SELECT ST_Envelope(ST_Collect(n.geom))" + " FROM nodes n INNER JOIN way_nodes wn ON wn.node_id = n.id"
+			+ " WHERE wn.way_id = w.id" + " )" + " WHERE w.id IN ("
+			+ " SELECT w.id FROM ways w INNER JOIN way_nodes wn ON w.id = wn.way_id WHERE wn.node_id = ? GROUP BY w.id"
+			+ " )";
+	private static final String SQL_UPDATE_WAY_LINESTRING = "UPDATE ways w SET linestring = ("
+			+ " SELECT ST_MakeLine(c.geom) AS way_line FROM ("
+			+ " SELECT n.geom AS geom FROM nodes n INNER JOIN way_nodes wn ON n.id = wn.node_id"
+			+ " WHERE (wn.way_id = w.id) ORDER BY wn.sequence_id" + " ) c" + " )" + " WHERE w.id IN ("
+			+ " SELECT w.id FROM ways w INNER JOIN way_nodes wn ON w.id = wn.way_id WHERE wn.node_id = ? GROUP BY w.id"
+			+ " )";
+
 	private SimpleJdbcTemplate jdbcTemplate;
 	private DatabaseCapabilityChecker capabilityChecker;
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -51,26 +42,9 @@ public class NodeDao extends EntityDao<Node> {
 	 */
 	public NodeDao(DatabaseContext dbCtx, ActionDao actionDao) {
 		super(dbCtx.getSimpleJdbcTemplate(), new NodeMapper(), actionDao);
-		
+
 		jdbcTemplate = dbCtx.getSimpleJdbcTemplate();
 		capabilityChecker = new DatabaseCapabilityChecker(dbCtx);
-	}
-	
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void modifyEntity(Node entity) {
-		super.modifyEntity(entity);
-		
-		if (capabilityChecker.isWayBboxSupported()) {
-			jdbcTemplate.update(SQL_UPDATE_WAY_BBOX, entity.getId());
-		}
-		
-		if (capabilityChecker.isWayLinestringSupported()) {
-			jdbcTemplate.update(SQL_UPDATE_WAY_LINESTRING, entity.getId());
-		}
 	}
 
 
