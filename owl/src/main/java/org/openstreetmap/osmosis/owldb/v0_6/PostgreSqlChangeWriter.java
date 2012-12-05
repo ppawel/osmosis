@@ -13,7 +13,6 @@ import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
 import org.openstreetmap.osmosis.core.task.common.ChangeAction;
 import org.openstreetmap.osmosis.core.task.v0_6.ChangeSink;
 import org.openstreetmap.osmosis.owldb.common.DatabaseContext;
-import org.openstreetmap.osmosis.owldb.common.SchemaVersionValidator;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.ChangeWriter;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.ChangesetManager;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.InvalidActionsMode;
@@ -31,7 +30,6 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 	protected ChangesetManager changesetManager;
 	protected ChangeWriter changeWriter;
 	protected DatabaseContext dbCtx;
-	private SchemaVersionValidator schemaVersionValidator;
 	private Set<Long> seenChangesetIds;
 	private boolean initialized;
 
@@ -51,10 +49,7 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 		dbCtx = new DatabaseContext(loginCredentials);
 		changesetManager = new ChangesetManager(dbCtx);
 		changeWriter = new ChangeWriter(dbCtx, invalidActionsMode);
-
-		schemaVersionValidator = new SchemaVersionValidator(dbCtx.getSimpleJdbcTemplate(), preferences);
 		seenChangesetIds = new TreeSet<Long>();
-
 		initialized = false;
 	}
 
@@ -87,9 +82,6 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 		ChangeAction action;
 
 		initialize();
-
-		// Verify that the schema version is supported.
-		schemaVersionValidator.validateVersion(PostgreSqlVersionConstants.SCHEMA_VERSION);
 
 		action = change.getAction();
 
