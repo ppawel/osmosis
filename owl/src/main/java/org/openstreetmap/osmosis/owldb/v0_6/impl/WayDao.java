@@ -17,17 +17,12 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  */
 public class WayDao extends EntityDao<Way> {
 
-	private static final String SQL_UPDATE_WAY_BBOX = "UPDATE ways SET bbox = ("
-			+ " SELECT ST_Envelope(ST_Collect(geom))" + " FROM nodes JOIN way_nodes ON way_nodes.node_id = nodes.id"
-			+ " WHERE way_nodes.way_id = ways.id" + " )" + " WHERE ways.id = ?";
-
 	private static final String SQL_UPDATE_WAY_LINESTRING = "UPDATE ways w SET linestring = ("
 			+ " SELECT ST_MakeLine(c.geom) AS way_line FROM ("
 			+ " SELECT n.geom AS geom FROM nodes n INNER JOIN way_nodes wn ON n.id = wn.node_id"
 			+ " WHERE (wn.way_id = w.id) ORDER BY wn.sequence_id" + " ) c" + " )" + " WHERE w.id  = ?";
 
 	private SimpleJdbcTemplate jdbcTemplate;
-	private DatabaseCapabilityChecker capabilityChecker;
 
 
 	/**
@@ -42,7 +37,6 @@ public class WayDao extends EntityDao<Way> {
 		super(dbCtx.getSimpleJdbcTemplate(), new WayMapper(), actionDao);
 
 		jdbcTemplate = dbCtx.getSimpleJdbcTemplate();
-		capabilityChecker = new DatabaseCapabilityChecker(dbCtx);
 	}
 
 
@@ -53,12 +47,7 @@ public class WayDao extends EntityDao<Way> {
 	 *            The way bounding box.
 	 */
 	private void updateWayGeometries(long wayId) {
-		if (capabilityChecker.isWayBboxSupported()) {
-			jdbcTemplate.update(SQL_UPDATE_WAY_BBOX, wayId);
-		}
-		if (capabilityChecker.isWayLinestringSupported()) {
-			jdbcTemplate.update(SQL_UPDATE_WAY_LINESTRING, wayId);
-		}
+		jdbcTemplate.update(SQL_UPDATE_WAY_LINESTRING, wayId);
 	}
 
 

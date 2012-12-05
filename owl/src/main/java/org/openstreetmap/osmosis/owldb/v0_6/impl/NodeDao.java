@@ -29,7 +29,6 @@ public class NodeDao extends EntityDao<Node> {
 			+ " )";
 
 	private SimpleJdbcTemplate jdbcTemplate;
-	private DatabaseCapabilityChecker capabilityChecker;
 
 
 	/**
@@ -44,7 +43,6 @@ public class NodeDao extends EntityDao<Node> {
 		super(dbCtx.getSimpleJdbcTemplate(), new NodeMapper(), actionDao);
 
 		jdbcTemplate = dbCtx.getSimpleJdbcTemplate();
-		capabilityChecker = new DatabaseCapabilityChecker(dbCtx);
 	}
 
 

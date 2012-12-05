@@ -13,11 +13,10 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 public class ActionDao {
 	private static final String SQL_INSERT = "INSERT INTO actions(data_type, action, id) VALUES(?, ?, ?)";
 	private static final String SQL_TRUNCATE = "TRUNCATE actions";
-	
+
 	private SimpleJdbcTemplate jdbcTemplate;
-	private DatabaseCapabilityChecker capabilityChecker;
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -26,31 +25,26 @@ public class ActionDao {
 	 */
 	public ActionDao(DatabaseContext dbCtx) {
 		jdbcTemplate = dbCtx.getSimpleJdbcTemplate();
-		
-		capabilityChecker = new DatabaseCapabilityChecker(dbCtx);
 	}
-	
-	
+
+
 	/**
 	 * Adds the specified action to the database.
 	 * 
-	 * @param dataType The type of data being represented by this action. 
-	 * @param action The action being performed on the data.
-	 * @param id The identifier of the data. 
+	 * @param dataType
+	 *            The type of data being represented by this action.
+	 * @param action
+	 *            The action being performed on the data.
+	 * @param id
+	 *            The identifier of the data.
 	 */
 	public void addAction(ActionDataType dataType, ChangesetAction action, long id) {
-		if (capabilityChecker.isActionSupported()) {
-			jdbcTemplate.update(SQL_INSERT, dataType.getDatabaseValue(), action.getDatabaseValue(), id);
-		}
 	}
-	
-	
+
+
 	/**
 	 * Removes all action records.
 	 */
 	public void truncate() {
-		if (capabilityChecker.isActionSupported()) {
-			jdbcTemplate.update(SQL_TRUNCATE);
-		}
 	}
 }
