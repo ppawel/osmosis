@@ -65,9 +65,10 @@ public abstract class EntityDao<T extends Entity> {
 	 * 
 	 * @param entityId
 	 *            The unique identifier of the entity.
+	 * @param version TODO
 	 * @return True if the entity exists in the database.
 	 */
-	public boolean exists(long entityId) {
+	public boolean exists(long entityId, int version) {
 		return jdbcTemplate.queryForInt(entityMapper.getSqlSelectCount(true), entityId) > 0;
 	}
 

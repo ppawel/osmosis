@@ -145,18 +145,11 @@ public class ChangeWriter {
 	protected void writeNodeChange(Node newNode, Node existingNode, ChangeAction action) throws SQLException {
 		processEntityPrerequisites(newNode);
 
-		// If this is a create or modify, we must create or modify the records
-		// in the database. Note that we don't use the input source to
-		// distinguish between create and modify, we make this determination
-		// based on our current data set.
-		if (ChangeAction.Create.equals(action) || ChangeAction.Modify.equals(action)) {
-			if (existingNode != null) {
-				nodeDao.modifyEntity(newNode);
-			} else {
-				nodeDao.addEntity(newNode);
-			}
-		} else {
-			// Remove the node from the database.
+		if (action == ChangeAction.Create && !nodeDao.exists(newNode.getId(), newNode.getVersion())) {
+			nodeDao.addEntity(newNode);
+		} else if (action == ChangeAction.Modify && !nodeDao.exists(newNode.getId(), newNode.getVersion())) {
+			nodeDao.modifyEntity(newNode);
+		} else if (action == ChangeAction.Delete) {
 			nodeDao.removeEntity(newNode.getId(), newNode.getVersion());
 		}
 	}
@@ -165,18 +158,11 @@ public class ChangeWriter {
 	protected void writeWayChange(Way newWay, Way existingWay, ChangeAction action) throws SQLException {
 		processEntityPrerequisites(newWay);
 
-		// If this is a create or modify, we must create or modify the records
-		// in the database. Note that we don't use the input source to
-		// distinguish between create and modify, we make this determination
-		// based on our current data set.
-		if (ChangeAction.Create.equals(action) || ChangeAction.Modify.equals(action)) {
-			if (existingWay != null) {
-				wayDao.modifyEntity(newWay);
-			} else {
-				wayDao.addEntity(newWay);
-			}
-		} else {
-			// Remove the way from the database.
+		if (action == ChangeAction.Create && !wayDao.exists(newWay.getId(), newWay.getVersion())) {
+			wayDao.addEntity(newWay);
+		} else if (action == ChangeAction.Modify && !wayDao.exists(newWay.getId(), newWay.getVersion())) {
+			wayDao.modifyEntity(newWay);
+		} else if (action == ChangeAction.Delete) {
 			wayDao.removeEntity(newWay.getId(), newWay.getVersion());
 		}
 	}
@@ -186,19 +172,11 @@ public class ChangeWriter {
 			throws SQLException {
 		processEntityPrerequisites(newRelation);
 
-		// If this is a create or modify, we must create or modify the records
-		// in the database. Note that we don't use the input source to
-		// distinguish between create and modify, we make this determination
-		// based on our current data set.
-		if (ChangeAction.Create.equals(action) || ChangeAction.Modify.equals(action)) {
-			if (existingRelation != null) {
-				relationDao.modifyEntity(newRelation);
-			} else {
-				relationDao.addEntity(newRelation);
-			}
-
-		} else {
-			// Remove the relation from the database.
+		if (action == ChangeAction.Create && !relationDao.exists(newRelation.getId(), newRelation.getVersion())) {
+			relationDao.addEntity(newRelation);
+		} else if (action == ChangeAction.Modify && !relationDao.exists(newRelation.getId(), newRelation.getVersion())) {
+			relationDao.modifyEntity(newRelation);
+		} else if (action == ChangeAction.Delete) {
 			relationDao.removeEntity(newRelation.getId(), newRelation.getVersion());
 		}
 	}
