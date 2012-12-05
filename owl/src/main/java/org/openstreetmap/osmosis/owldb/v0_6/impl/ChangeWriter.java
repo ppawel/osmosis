@@ -26,7 +26,6 @@ public class ChangeWriter {
 	private static final Logger LOG = Logger.getLogger(ChangeWriter.class.getName());
 
 	private DatabaseContext dbCtx;
-	private ChangeManager changeManager;
 	private ActionDao actionDao;
 	private UserDao userDao;
 	private NodeDao nodeDao;
@@ -51,7 +50,6 @@ public class ChangeWriter {
 		LOG.info("invalidActionsMode = " + invalidActionsMode);
 
 		actionDao = new ActionDao(dbCtx);
-		changeManager = new ChangeManager(dbCtx, actionDao);
 		userDao = new UserDao(dbCtx, actionDao);
 		nodeDao = new NodeDao(dbCtx, actionDao);
 		wayDao = new WayDao(dbCtx, actionDao);
@@ -122,6 +120,8 @@ public class ChangeWriter {
 	 * @throws SQLException
 	 */
 	public void write(Entity newEntity, Entity existingEntity, ChangeAction action) throws SQLException {
+		LOG.fine(action.name() + " " + newEntity.getType() + " " + newEntity.getId() + " " + newEntity.getVersion());
+
 		switch (newEntity.getType()) {
 		case Node:
 			writeNodeChange((Node) newEntity, (Node) existingEntity, action);
@@ -145,14 +145,6 @@ public class ChangeWriter {
 	protected void writeNodeChange(Node newNode, Node existingNode, ChangeAction action) throws SQLException {
 		processEntityPrerequisites(newNode);
 
-		if (existingNode == null) {
-			existingNode = nodeDao.getEntity(newNode.getId());
-		}
-
-		validateAction(action, existingNode, newNode);
-
-		changeManager.process(action, existingNode, newNode);
-
 		// If this is a create or modify, we must create or modify the records
 		// in the database. Note that we don't use the input source to
 		// distinguish between create and modify, we make this determination
@@ -165,19 +157,13 @@ public class ChangeWriter {
 			}
 		} else {
 			// Remove the node from the database.
-			nodeDao.removeEntity(newNode.getId());
+			nodeDao.removeEntity(newNode.getId(), newNode.getVersion());
 		}
 	}
 
 
 	protected void writeWayChange(Way newWay, Way existingWay, ChangeAction action) throws SQLException {
 		processEntityPrerequisites(newWay);
-
-		if (existingWay == null) {
-			existingWay = wayDao.getEntity(newWay.getId());
-		}
-
-		validateAction(action, existingWay, newWay);
 
 		// If this is a create or modify, we must create or modify the records
 		// in the database. Note that we don't use the input source to
@@ -189,28 +175,16 @@ public class ChangeWriter {
 			} else {
 				wayDao.addEntity(newWay);
 			}
-
-			newWay = wayDao.getEntity(newWay.getId());
 		} else {
 			// Remove the way from the database.
-			wayDao.removeEntity(newWay.getId());
+			wayDao.removeEntity(newWay.getId(), newWay.getVersion());
 		}
-
-		changeManager.process(action, existingWay, newWay);
 	}
 
 
 	protected void writeRelationChange(Relation newRelation, Relation existingRelation, ChangeAction action)
 			throws SQLException {
 		processEntityPrerequisites(newRelation);
-
-		if (existingRelation == null) {
-			existingRelation = relationDao.getEntity(newRelation.getId());
-		}
-
-		validateAction(action, existingRelation, newRelation);
-
-		changeManager.process(action, existingRelation, newRelation);
 
 		// If this is a create or modify, we must create or modify the records
 		// in the database. Note that we don't use the input source to
@@ -225,7 +199,7 @@ public class ChangeWriter {
 
 		} else {
 			// Remove the relation from the database.
-			relationDao.removeEntity(newRelation.getId());
+			relationDao.removeEntity(newRelation.getId(), newRelation.getVersion());
 		}
 	}
 

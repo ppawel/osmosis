@@ -221,7 +221,7 @@ public abstract class EntityMapper<T extends Entity> {
 		resultSql = new StringBuilder();
 		resultSql.append("DELETE FROM ").append(getEntityName()).append("s");
 		if (filterByEntityId) {
-			resultSql.append(" WHERE id = :id");
+			resultSql.append(" WHERE id = :id AND version = :version");
 		}
 
 		return resultSql.toString();

@@ -127,12 +127,15 @@ public abstract class EntityDao<T extends Entity> {
 	 * 
 	 * @param entityId
 	 *            The id of the entity to remove.
+	 * @param version
+	 *            The version of the entity to remove.
 	 */
-	public void removeEntity(long entityId) {
+	public void removeEntity(long entityId, int version) {
 		Map<String, Object> args;
 
 		args = new HashMap<String, Object>();
 		args.put("id", entityId);
+		args.put("version", version);
 
 		jdbcTemplate.update(entityMapper.getSqlDelete(true), args);
 
