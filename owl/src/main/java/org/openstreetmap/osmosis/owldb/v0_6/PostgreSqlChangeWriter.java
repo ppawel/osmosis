@@ -3,18 +3,14 @@ package org.openstreetmap.osmosis.owldb.v0_6;
 
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 import org.openstreetmap.osmosis.core.container.v0_6.ChangeContainer;
 import org.openstreetmap.osmosis.core.database.DatabaseLoginCredentials;
 import org.openstreetmap.osmosis.core.database.DatabasePreferences;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
-import org.openstreetmap.osmosis.core.task.common.ChangeAction;
 import org.openstreetmap.osmosis.core.task.v0_6.ChangeSink;
 import org.openstreetmap.osmosis.owldb.common.DatabaseContext;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.ChangeWriter;
-import org.openstreetmap.osmosis.owldb.v0_6.impl.ChangesetManager;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.InvalidActionsMode;
 
 
@@ -27,10 +23,8 @@ import org.openstreetmap.osmosis.owldb.v0_6.impl.InvalidActionsMode;
  */
 public class PostgreSqlChangeWriter implements ChangeSink {
 
-	protected ChangesetManager changesetManager;
 	protected ChangeWriter changeWriter;
 	protected DatabaseContext dbCtx;
-	private Set<Long> seenChangesetIds;
 	private boolean initialized;
 
 
@@ -47,9 +41,7 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 	public PostgreSqlChangeWriter(DatabaseLoginCredentials loginCredentials, DatabasePreferences preferences,
 			InvalidActionsMode invalidActionsMode) throws SQLException {
 		dbCtx = new DatabaseContext(loginCredentials);
-		changesetManager = new ChangesetManager(dbCtx);
 		changeWriter = new ChangeWriter(dbCtx, invalidActionsMode);
-		seenChangesetIds = new TreeSet<Long>();
 		initialized = false;
 	}
 
@@ -79,19 +71,10 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 
 
 	protected void process(ChangeContainer change, Entity existingEntity) {
-		ChangeAction action;
-
 		initialize();
 
-		action = change.getAction();
-
-		changesetManager.addChangesetIfRequired(change.getEntityContainer().getEntity().getChangesetId(), change
-				.getEntityContainer().getEntity().getUser(), change.getEntityContainer().getEntity().getTimestamp());
-
-		seenChangesetIds.add(change.getEntityContainer().getEntity().getChangesetId());
-
 		try {
-			changeWriter.write(change.getEntityContainer().getEntity(), existingEntity, action);
+			changeWriter.write(change.getEntityContainer().getEntity(), existingEntity, change.getAction());
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -104,18 +87,7 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 	 */
 	public void complete() {
 		initialize();
-
 		changeWriter.complete();
-
-		for (Long changesetId : seenChangesetIds) {
-			try {
-				changesetManager.updateChangeset(changesetId);
-			} catch (SQLException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		}
-
 		dbCtx.commitTransaction();
 		initialized = false;
 	}
@@ -126,7 +98,6 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 	 */
 	public void release() {
 		changeWriter.release();
-
 		dbCtx.release();
 	}
 }
