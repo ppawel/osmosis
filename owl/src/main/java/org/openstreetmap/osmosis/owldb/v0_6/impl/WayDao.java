@@ -1,14 +1,11 @@
 // This software is released into the Public Domain.  See copying.txt for details.
 package org.openstreetmap.osmosis.owldb.v0_6.impl;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.openstreetmap.osmosis.core.database.DbOrderedFeature;
 import org.openstreetmap.osmosis.core.database.FeaturePopulator;
 import org.openstreetmap.osmosis.core.domain.v0_6.Way;
-import org.openstreetmap.osmosis.core.domain.v0_6.WayNode;
 import org.openstreetmap.osmosis.owldb.common.DatabaseContext;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
@@ -31,8 +28,6 @@ public class WayDao extends EntityDao<Way> {
 
 	private SimpleJdbcTemplate jdbcTemplate;
 	private DatabaseCapabilityChecker capabilityChecker;
-	private EntityFeatureDao<WayNode, DbOrderedFeature<WayNode>> wayNodeDao;
-	private WayNodeMapper wayNodeMapper;
 
 
 	/**
@@ -48,51 +43,6 @@ public class WayDao extends EntityDao<Way> {
 
 		jdbcTemplate = dbCtx.getSimpleJdbcTemplate();
 		capabilityChecker = new DatabaseCapabilityChecker(dbCtx);
-		wayNodeMapper = new WayNodeMapper();
-		wayNodeDao = new EntityFeatureDao<WayNode, DbOrderedFeature<WayNode>>(jdbcTemplate, wayNodeMapper);
-	}
-
-
-	private void loadFeatures(long entityId, Way entity) {
-		entity.getWayNodes().addAll(wayNodeDao.getAllRaw(entityId));
-	}
-
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Way getEntity(long entityId) {
-		Way entity;
-
-		entity = super.getEntity(entityId);
-
-		if (entity != null) {
-			loadFeatures(entityId, entity);
-		}
-
-		return entity;
-	}
-
-
-	/**
-	 * Adds the specified way node list to the database.
-	 * 
-	 * @param entityId
-	 *            The identifier of the entity to add these features to.
-	 * @param wayNodeList
-	 *            The list of features to add.
-	 */
-	private void addWayNodeList(long entityId, List<WayNode> wayNodeList) {
-		List<DbOrderedFeature<WayNode>> dbList;
-
-		dbList = new ArrayList<DbOrderedFeature<WayNode>>(wayNodeList.size());
-
-		for (int i = 0; i < wayNodeList.size(); i++) {
-			dbList.add(new DbOrderedFeature<WayNode>(entityId, wayNodeList.get(i), i));
-		}
-
-		wayNodeDao.addAll(dbList);
 	}
 
 
@@ -118,9 +68,6 @@ public class WayDao extends EntityDao<Way> {
 	@Override
 	public void addEntity(Way entity) {
 		super.addEntity(entity);
-
-		addWayNodeList(entity.getId(), entity.getWayNodes());
-
 		updateWayGeometries(entity.getId());
 	}
 
@@ -130,26 +77,8 @@ public class WayDao extends EntityDao<Way> {
 	 */
 	@Override
 	public void modifyEntity(Way entity) {
-		long wayId;
-
 		super.modifyEntity(entity);
-
-		wayId = entity.getId();
-		wayNodeDao.removeList(wayId);
-		addWayNodeList(entity.getId(), entity.getWayNodes());
-
 		updateWayGeometries(entity.getId());
-	}
-
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void removeEntity(long entityId) {
-		wayNodeDao.removeList(entityId);
-
-		super.removeEntity(entityId);
 	}
 
 
