@@ -15,13 +15,13 @@ import org.openstreetmap.osmosis.owldb.common.NodeLocationStoreType;
  * 
  * @author Brett Henderson
  */
-public class PostgreSqlDumpWriterFactory extends TaskManagerFactory {
+public class PostgreSqlHistoryDumpWriterFactory extends TaskManagerFactory {
 	private static final String ARG_FILE_NAME = "directory";
 	private static final String ARG_NODE_LOCATION_STORE_TYPE = "nodeLocationStoreType";
 	private static final String DEFAULT_FILE_PREFIX = "pgimport";
 	private static final String DEFAULT_NODE_LOCATION_STORE_TYPE = "CompactTempFile";
-
-
+	
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -30,17 +30,21 @@ public class PostgreSqlDumpWriterFactory extends TaskManagerFactory {
 		String filePrefixString;
 		File filePrefix;
 		NodeLocationStoreType storeType;
-
+		
 		// Get the task arguments.
-		filePrefixString = getStringArgument(taskConfig, ARG_FILE_NAME, DEFAULT_FILE_PREFIX);
-		storeType = Enum.valueOf(NodeLocationStoreType.class,
+		filePrefixString = getStringArgument(
+				taskConfig, ARG_FILE_NAME, DEFAULT_FILE_PREFIX);
+		storeType = Enum.valueOf(
+				NodeLocationStoreType.class,
 				getStringArgument(taskConfig, ARG_NODE_LOCATION_STORE_TYPE, DEFAULT_NODE_LOCATION_STORE_TYPE));
-
-		// Create a file object representing the directory from the file name
-		// provided.
+		
+		// Create a file object representing the directory from the file name provided.
 		filePrefix = new File(filePrefixString);
-
-		return new SinkManager(taskConfig.getId(), new PostgreSqlDumpWriter(filePrefix, storeType),
-				taskConfig.getPipeArgs());
+		
+		return new SinkManager(
+			taskConfig.getId(),
+			new PostgreSqlHistoryDumpWriter(filePrefix, storeType),
+			taskConfig.getPipeArgs()
+		);
 	}
 }

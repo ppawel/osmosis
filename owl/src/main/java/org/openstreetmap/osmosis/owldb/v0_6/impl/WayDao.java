@@ -19,8 +19,7 @@ public class WayDao extends EntityDao<Way> {
 
 	private static final String SQL_UPDATE_WAY_LINESTRING = "UPDATE ways w SET linestring = ("
 			+ " SELECT ST_MakeLine(c.geom) AS way_line FROM ("
-			+ " SELECT n.geom AS geom FROM nodes n INNER JOIN way_nodes wn ON n.id = wn.node_id"
-			+ " WHERE (wn.way_id = w.id) ORDER BY wn.sequence_id" + " ) c" + " )" + " WHERE w.id  = ?";
+			+ " SELECT n.geom AS geom FROM nodes n WHERE w.nodes @> ARRAY[n.id]" + ") c) WHERE w.id = ?";
 
 	private SimpleJdbcTemplate jdbcTemplate;
 
@@ -47,7 +46,7 @@ public class WayDao extends EntityDao<Way> {
 	 *            The way bounding box.
 	 */
 	private void updateWayGeometries(long wayId) {
-		jdbcTemplate.update(SQL_UPDATE_WAY_LINESTRING, wayId);
+	//	jdbcTemplate.update(SQL_UPDATE_WAY_LINESTRING, wayId);
 	}
 
 

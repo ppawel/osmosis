@@ -55,21 +55,10 @@ public class CopyFilesetBuilder implements Sink, EntityProcessor {
 	 * 
 	 * @param copyFileset
 	 *            The set of COPY files to be populated.
-	 * @param enableBboxBuilder
-	 *            If true, the way bbox geometry is built during processing
-	 *            instead of relying on the database to build them after import.
-	 *            This increases processing but is faster than relying on the
-	 *            database.
-	 * @param enableLinestringBuilder
-	 *            If true, the way linestring geometry is built during
-	 *            processing instead of relying on the database to build them
-	 *            after import. This increases processing but is faster than
-	 *            relying on the database.
 	 * @param storeType
 	 *            The node location storage type used by the geometry builders.
 	 */
-	public CopyFilesetBuilder(CopyFileset copyFileset, boolean enableBboxBuilder, boolean enableLinestringBuilder,
-			NodeLocationStoreType storeType) {
+	public CopyFilesetBuilder(CopyFileset copyFileset, NodeLocationStoreType storeType) {
 		writerContainer = new CompletableContainer();
 
 		wayGeometryBuilder = new WayGeometryBuilder(storeType);
@@ -154,7 +143,7 @@ public class CopyFilesetBuilder implements Sink, EntityProcessor {
 		nodeWriter.writeField(pointBuilder.createPoint(node.getLatitude(), node.getLongitude()));
 		nodeWriter.endRecord();
 
-		wayGeometryBuilder.addNodeLocation(node);
+		// wayGeometryBuilder.addNodeLocation(node);
 	}
 
 
@@ -182,7 +171,7 @@ public class CopyFilesetBuilder implements Sink, EntityProcessor {
 			wayWriter.writeField(way.getChangesetId());
 			wayWriter.writeField(buildTags(way));
 			wayWriter.writeField(nodeIds);
-			wayWriter.writeField(wayGeometryBuilder.createWayLinestring(way));
+			// wayWriter.writeField(wayGeometryBuilder.createWayLinestring(way));
 			wayWriter.endRecord();
 		}
 	}
