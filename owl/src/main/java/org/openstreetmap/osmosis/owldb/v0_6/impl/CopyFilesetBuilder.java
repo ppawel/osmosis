@@ -190,6 +190,7 @@ public class CopyFilesetBuilder implements Sink, EntityProcessor {
 		memberSequenceId = 0;
 		for (RelationMember member : relation.getMembers()) {
 			relationMemberWriter.writeField(relation.getId());
+			relationMemberWriter.writeField(relation.getVersion());
 			relationMemberWriter.writeField(member.getMemberId());
 			relationMemberWriter.writeField(memberTypeValueMapper.getMemberType(member.getMemberType()));
 			relationMemberWriter.writeField(member.getMemberRole());
