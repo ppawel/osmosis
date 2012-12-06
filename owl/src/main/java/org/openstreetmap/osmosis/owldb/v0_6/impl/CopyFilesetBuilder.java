@@ -27,6 +27,7 @@ import org.openstreetmap.osmosis.hstore.PGHStore;
 import org.openstreetmap.osmosis.owldb.common.CopyFileWriter;
 import org.openstreetmap.osmosis.owldb.common.NodeLocationStoreType;
 import org.openstreetmap.osmosis.owldb.common.PointBuilder;
+import org.postgis.Geometry;
 
 
 /**
@@ -151,29 +152,23 @@ public class CopyFilesetBuilder implements Sink, EntityProcessor {
 	 * {@inheritDoc}
 	 */
 	public void process(WayContainer wayContainer) {
-		Way way;
+		Way way = wayContainer.getEntity();
 		List<Long> nodeIds;
-
-		way = wayContainer.getEntity();
 
 		nodeIds = new ArrayList<Long>(way.getWayNodes().size());
 		for (WayNode wayNode : way.getWayNodes()) {
 			nodeIds.add(wayNode.getNodeId());
 		}
 
-		// Ignore ways with a single node because they can't be loaded into
-		// postgis.
-		if (way.getWayNodes().size() > 1) {
-			wayWriter.writeField(way.getId());
-			wayWriter.writeField(way.getVersion());
-			wayWriter.writeField(way.getUser().getId());
-			wayWriter.writeField(way.getTimestamp());
-			wayWriter.writeField(way.getChangesetId());
-			wayWriter.writeField(buildTags(way));
-			wayWriter.writeField(nodeIds);
-			// wayWriter.writeField(wayGeometryBuilder.createWayLinestring(way));
-			wayWriter.endRecord();
-		}
+		wayWriter.writeField(way.getId());
+		wayWriter.writeField(way.getVersion());
+		wayWriter.writeField(way.getUser().getId());
+		wayWriter.writeField(way.getTimestamp());
+		wayWriter.writeField(way.getChangesetId());
+		wayWriter.writeField(buildTags(way));
+		wayWriter.writeField(nodeIds);
+		wayWriter.writeField((Geometry) null);// wayGeometryBuilder.createWayLinestring(way));
+		wayWriter.endRecord();
 	}
 
 
@@ -181,10 +176,8 @@ public class CopyFilesetBuilder implements Sink, EntityProcessor {
 	 * {@inheritDoc}
 	 */
 	public void process(RelationContainer relationContainer) {
-		Relation relation;
+		Relation relation = relationContainer.getEntity();
 		int memberSequenceId;
-
-		relation = relationContainer.getEntity();
 
 		relationWriter.writeField(relation.getId());
 		relationWriter.writeField(relation.getVersion());
