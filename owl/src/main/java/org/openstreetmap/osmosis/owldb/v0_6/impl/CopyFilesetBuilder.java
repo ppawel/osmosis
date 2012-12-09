@@ -167,7 +167,8 @@ public class CopyFilesetBuilder implements Sink, EntityProcessor {
 		wayWriter.writeField(way.getChangesetId());
 		wayWriter.writeField(buildTags(way));
 		wayWriter.writeField(nodeIds);
-		wayWriter.writeField((Geometry) null);// wayGeometryBuilder.createWayLinestring(way));
+		// wayWriter.writeField((Geometry) null);
+		// wayGeometryBuilder.createWayLinestring(way));
 		wayWriter.endRecord();
 	}
 
