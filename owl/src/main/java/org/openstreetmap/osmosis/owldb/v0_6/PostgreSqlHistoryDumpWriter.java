@@ -26,7 +26,10 @@ public class PostgreSqlHistoryDumpWriter extends PostgreSqlDumpWriter {
 
 	private Long currentId;
 
+	// Holds visible versions.
 	private List<EntityContainer> lastVersions;
+
+	private boolean lastVersionWasVisible;
 
 
 	/**
@@ -56,14 +59,14 @@ public class PostgreSqlHistoryDumpWriter extends PostgreSqlDumpWriter {
 	 */
 	public void process(EntityContainer entityContainer) {
 		if (currentId != null && currentId != entityContainer.getEntity().getId()) {
-			if (!lastVersions.isEmpty() && lastVersions.get(lastVersions.size() - 1).getEntity().isVisible()) {
+			if (!lastVersions.isEmpty() && lastVersionWasVisible) {
 				// Current entity is a new one so now we need to process the
 				// previous one's history and reset.
 				for (EntityContainer container : lastVersions) {
 					super.process(container);
 				}
-				lastVersions.clear();
 			}
+			lastVersions.clear();
 		}
 
 		if (entityContainer.getEntity().isVisible()) {
@@ -74,5 +77,6 @@ public class PostgreSqlHistoryDumpWriter extends PostgreSqlDumpWriter {
 		}
 
 		currentId = entityContainer.getEntity().getId();
+		lastVersionWasVisible = entityContainer.getEntity().isVisible();
 	}
 }
