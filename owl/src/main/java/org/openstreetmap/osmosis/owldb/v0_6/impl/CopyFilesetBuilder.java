@@ -27,7 +27,6 @@ import org.openstreetmap.osmosis.hstore.PGHStore;
 import org.openstreetmap.osmosis.owldb.common.CopyFileWriter;
 import org.openstreetmap.osmosis.owldb.common.NodeLocationStoreType;
 import org.openstreetmap.osmosis.owldb.common.PointBuilder;
-import org.postgis.Geometry;
 
 
 /**
@@ -137,6 +136,7 @@ public class CopyFilesetBuilder implements Sink, EntityProcessor {
 
 		nodeWriter.writeField(node.getId());
 		nodeWriter.writeField(node.getVersion());
+		nodeWriter.writeField(node.isVisible());
 		nodeWriter.writeField(node.getUser().getId());
 		nodeWriter.writeField(node.getTimestamp());
 		nodeWriter.writeField(node.getChangesetId());
@@ -162,6 +162,7 @@ public class CopyFilesetBuilder implements Sink, EntityProcessor {
 
 		wayWriter.writeField(way.getId());
 		wayWriter.writeField(way.getVersion());
+		wayWriter.writeField(way.isVisible());
 		wayWriter.writeField(way.getUser().getId());
 		wayWriter.writeField(way.getTimestamp());
 		wayWriter.writeField(way.getChangesetId());
@@ -182,6 +183,7 @@ public class CopyFilesetBuilder implements Sink, EntityProcessor {
 
 		relationWriter.writeField(relation.getId());
 		relationWriter.writeField(relation.getVersion());
+		relationWriter.writeField(relation.isVisible());
 		relationWriter.writeField(relation.getUser().getId());
 		relationWriter.writeField(relation.getTimestamp());
 		relationWriter.writeField(relation.getChangesetId());
