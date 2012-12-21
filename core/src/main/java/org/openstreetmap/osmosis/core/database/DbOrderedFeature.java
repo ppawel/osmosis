@@ -16,7 +16,7 @@ import org.openstreetmap.osmosis.core.store.Storeable;
  *            The feature type to be encapsulated.
  */
 public class DbOrderedFeature<T extends Storeable> extends DbFeature<T> {
-	
+
 	private int sequenceId;
 
 
@@ -32,11 +32,18 @@ public class DbOrderedFeature<T extends Storeable> extends DbFeature<T> {
 	 */
 	public DbOrderedFeature(long entityId, T feature, int sequenceId) {
 		super(entityId, feature);
-		
+
 		this.sequenceId = sequenceId;
 	}
-	
-	
+
+
+	public DbOrderedFeature(long entityId, int version, T feature, int sequenceId) {
+		super(entityId, version, feature);
+
+		this.sequenceId = sequenceId;
+	}
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -50,8 +57,8 @@ public class DbOrderedFeature<T extends Storeable> extends DbFeature<T> {
 		super(sr, scr);
 		this.sequenceId = sr.readInteger();
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -60,8 +67,8 @@ public class DbOrderedFeature<T extends Storeable> extends DbFeature<T> {
 		super.store(sw, scr);
 		sw.writeInteger(sequenceId);
 	}
-	
-	
+
+
 	/**
 	 * @return The sequence id.
 	 */

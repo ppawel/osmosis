@@ -8,6 +8,7 @@ import org.openstreetmap.osmosis.core.container.v0_6.ChangeContainer;
 import org.openstreetmap.osmosis.core.database.DatabaseLoginCredentials;
 import org.openstreetmap.osmosis.core.database.DatabasePreferences;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
+import org.openstreetmap.osmosis.core.task.common.ChangeAction;
 import org.openstreetmap.osmosis.core.task.v0_6.ChangeSink;
 import org.openstreetmap.osmosis.owldb.common.DatabaseContext;
 import org.openstreetmap.osmosis.owldb.v0_6.impl.ChangeWriter;
@@ -72,6 +73,8 @@ public class PostgreSqlChangeWriter implements ChangeSink {
 
 	protected void process(ChangeContainer change, Entity existingEntity) {
 		initialize();
+
+		change.getEntityContainer().getEntity().setVisible(change.getAction() != ChangeAction.Delete);
 
 		try {
 			changeWriter.write(change.getEntityContainer().getEntity(), existingEntity, change.getAction());

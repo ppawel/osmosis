@@ -153,7 +153,7 @@ public abstract class EntityMapper<T extends Entity> {
 
 		resultSql = new StringBuilder();
 		resultSql.append("INSERT INTO ").append(getEntityName()).append("s");
-		resultSql.append("(id, version, user_id, tstamp, changeset_id, tags");
+		resultSql.append("(id, version, user_id, visible, tstamp, changeset_id, tags");
 		for (String fieldName : Arrays.asList(typeSpecificFieldNames)) {
 			if (!fieldName.equals("linestring")) {
 				resultSql.append(", ").append(fieldName);
@@ -164,7 +164,7 @@ public abstract class EntityMapper<T extends Entity> {
 			if (row > 0) {
 				resultSql.append(", ");
 			}
-			resultSql.append("(:id, :version, :userId, :timestamp, :changesetId, :tags");
+			resultSql.append("(:id, :version, :userId, :visible, :timestamp, :changesetId, :tags");
 			for (int i = 0; i < typeSpecificFieldNames.length; i++) {
 				if (!typeSpecificFieldNames[i].equals("linestring")) {
 					resultSql.append(", :").append(typeSpecificFieldNames[i]);
@@ -253,6 +253,7 @@ public abstract class EntityMapper<T extends Entity> {
 
 		args.put("id", entity.getId());
 		args.put("version", entity.getVersion());
+		args.put("visible", entity.isVisible());
 		args.put("userId", entity.getUser().getId());
 		args.put("timestamp", new Timestamp(entity.getTimestamp().getTime()));
 		args.put("changesetId", entity.getChangesetId());

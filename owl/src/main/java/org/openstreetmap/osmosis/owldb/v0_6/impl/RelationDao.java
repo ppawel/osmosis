@@ -76,18 +76,15 @@ public class RelationDao extends EntityDao<Relation> {
 	/**
 	 * Adds the specified relation member list to the database.
 	 * 
-	 * @param entityId
-	 *            The identifier of the entity to add these features to.
-	 * @param memberList
-	 *            The list of features to add.
 	 */
-	private void addMembers(long entityId, List<RelationMember> memberList) {
+	private void addMembers(Relation relation) {
 		List<DbOrderedFeature<RelationMember>> dbList;
 
-		dbList = new ArrayList<DbOrderedFeature<RelationMember>>(memberList.size());
+		dbList = new ArrayList<DbOrderedFeature<RelationMember>>(relation.getMembers().size());
 
-		for (int i = 0; i < memberList.size(); i++) {
-			dbList.add(new DbOrderedFeature<RelationMember>(entityId, memberList.get(i), i));
+		for (int i = 0; i < relation.getMembers().size(); i++) {
+			dbList.add(new DbOrderedFeature<RelationMember>(relation.getId(), relation.getVersion(), relation
+					.getMembers().get(i), i));
 		}
 
 		relationMemberDao.addAll(dbList);
@@ -101,7 +98,7 @@ public class RelationDao extends EntityDao<Relation> {
 	public void addEntity(Relation entity) {
 		super.addEntity(entity);
 
-		addMembers(entity.getId(), entity.getMembers());
+		addMembers(entity);
 	}
 
 
@@ -116,7 +113,7 @@ public class RelationDao extends EntityDao<Relation> {
 
 		relationId = entity.getId();
 		relationMemberDao.removeList(relationId);
-		addMembers(entity.getId(), entity.getMembers());
+		addMembers(entity);
 	}
 
 

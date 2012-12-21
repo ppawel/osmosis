@@ -19,11 +19,12 @@ import org.openstreetmap.osmosis.core.store.Storeable;
  *            The feature type to be encapsulated.
  */
 public class DbFeature<T extends Storeable> implements Storeable {
-	
+
 	private long entityId;
+	private int version;
 	private T feature;
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -36,8 +37,15 @@ public class DbFeature<T extends Storeable> implements Storeable {
 		this.entityId = entityId;
 		this.feature = feature;
 	}
-	
-	
+
+
+	public DbFeature(long entityId, int version, T feature) {
+		this.entityId = entityId;
+		this.version = version;
+		this.feature = feature;
+	}
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -49,13 +57,10 @@ public class DbFeature<T extends Storeable> implements Storeable {
 	 */
 	@SuppressWarnings("unchecked")
 	public DbFeature(StoreReader sr, StoreClassRegister scr) {
-		this(
-			sr.readLong(),
-			(T) new GenericObjectReader(sr, scr).readObject()
-		);
+		this(sr.readLong(), (T) new GenericObjectReader(sr, scr).readObject());
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -63,16 +68,21 @@ public class DbFeature<T extends Storeable> implements Storeable {
 		sw.writeLong(entityId);
 		new GenericObjectWriter(sw, scr).writeObject(feature);
 	}
-	
-	
+
+
 	/**
 	 * @return The entity id.
 	 */
 	public long getEntityId() {
 		return entityId;
 	}
-	
-	
+
+
+	public int getVersion() {
+		return version;
+	}
+
+
 	/**
 	 * @return The entity feature.
 	 */

@@ -87,12 +87,12 @@ public class RelationMemberMapper extends EntityFeatureMapper<DbOrderedFeature<R
 		
 		resultSql = new StringBuilder();
 		resultSql.append("INSERT INTO relation_members (");
-		resultSql.append("relation_id, member_id, member_type, member_role, sequence_id) VALUES ");
+		resultSql.append("relation_id, version, member_id, member_type, member_role, sequence_id) VALUES ");
 		for (int row = 0; row < rowCount; row++) {
 			if (row > 0) {
 				resultSql.append(", ");
 			}
-			resultSql.append("(:relationId, :memberId, :memberType, :memberRole, :sequenceId)");
+			resultSql.append("(:relationId, :version, :memberId, :memberType, :memberRole, :sequenceId)");
 		}
 		
 		return resultSql.toString();
@@ -126,6 +126,7 @@ public class RelationMemberMapper extends EntityFeatureMapper<DbOrderedFeature<R
 		relationMember = feature.getFeature();
 		
 		args.put("relationId", feature.getEntityId());
+		args.put("version", feature.getVersion());
 		args.put("memberId", relationMember.getMemberId());
 		args.put("memberType", memberTypeValueMapper.getMemberType(relationMember.getMemberType()));
 		args.put("memberRole", relationMember.getMemberRole());

@@ -400,4 +400,9 @@ public abstract class Entity implements Storeable {
 	public boolean isVisible() {
 		return entityData.isVisible();
 	}
+
+
+	public void setVisible(boolean visible) {
+		entityData.setVisible(visible);
+	}
 }
