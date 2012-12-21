@@ -145,9 +145,13 @@ public class ChangeWriter {
 	protected void writeNodeChange(Node newNode, Node existingNode, ChangeAction action) throws SQLException {
 		processEntityPrerequisites(newNode);
 
-		if (action == ChangeAction.Create && !nodeDao.exists(newNode.getId(), newNode.getVersion())) {
+		if (nodeDao.exists(newNode.getId(), newNode.getVersion())) {
+			return;
+		}
+
+		if (action == ChangeAction.Create) {
 			nodeDao.addEntity(newNode);
-		} else if (action == ChangeAction.Modify && !nodeDao.exists(newNode.getId(), newNode.getVersion())) {
+		} else if (action == ChangeAction.Modify) {
 			nodeDao.modifyEntity(newNode);
 		} else if (action == ChangeAction.Delete) {
 			nodeDao.removeEntity(newNode);
@@ -158,9 +162,13 @@ public class ChangeWriter {
 	protected void writeWayChange(Way newWay, Way existingWay, ChangeAction action) throws SQLException {
 		processEntityPrerequisites(newWay);
 
-		if (action == ChangeAction.Create && !wayDao.exists(newWay.getId(), newWay.getVersion())) {
+		if (wayDao.exists(newWay.getId(), newWay.getVersion())) {
+			return;
+		}
+
+		if (action == ChangeAction.Create) {
 			wayDao.addEntity(newWay);
-		} else if (action == ChangeAction.Modify && !wayDao.exists(newWay.getId(), newWay.getVersion())) {
+		} else if (action == ChangeAction.Modify) {
 			wayDao.modifyEntity(newWay);
 		} else if (action == ChangeAction.Delete) {
 			wayDao.removeEntity(newWay);
@@ -172,9 +180,13 @@ public class ChangeWriter {
 			throws SQLException {
 		processEntityPrerequisites(newRelation);
 
-		if (action == ChangeAction.Create && !relationDao.exists(newRelation.getId(), newRelation.getVersion())) {
+		if (relationDao.exists(newRelation.getId(), newRelation.getVersion())) {
+			return;
+		}
+
+		if (action == ChangeAction.Create) {
 			relationDao.addEntity(newRelation);
-		} else if (action == ChangeAction.Modify && !relationDao.exists(newRelation.getId(), newRelation.getVersion())) {
+		} else if (action == ChangeAction.Modify) {
 			relationDao.modifyEntity(newRelation);
 		} else if (action == ChangeAction.Delete) {
 			relationDao.removeEntity(newRelation);
