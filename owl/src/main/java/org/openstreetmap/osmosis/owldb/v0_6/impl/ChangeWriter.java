@@ -120,7 +120,7 @@ public class ChangeWriter {
 	 * @throws SQLException
 	 */
 	public void write(Entity newEntity, Entity existingEntity, ChangeAction action) throws SQLException {
-		LOG.fine(action.name() + " " + newEntity.getType() + " " + newEntity.getId() + " " + newEntity.getVersion());
+		LOG.finest(action.name() + " " + newEntity.getType() + " " + newEntity.getId() + " " + newEntity.getVersion());
 
 		switch (newEntity.getType()) {
 		case Node:
