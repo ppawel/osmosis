@@ -69,7 +69,7 @@ public abstract class EntityMapper<T extends Entity> {
 		resultSql = new StringBuilder();
 		resultSql.append("SELECT Count(e.*) AS count FROM " + getEntityName() + "s e");
 		if (filterByEntityId) {
-			resultSql.append(" WHERE e.id = ?");
+			resultSql.append(" WHERE e.id = ? AND e.version = ?");
 		}
 
 		return resultSql.toString();
