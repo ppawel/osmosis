@@ -22,14 +22,12 @@ public class PostgreSqlHistoryDumpWriter extends PostgreSqlDumpWriter {
 
 	// Number of last entity versions to store.
 	// TODO: should be a task parameter?
-	private static int NUM_VERSIONS = 2;
+	private static int NUM_VERSIONS = -1;
 
 	private Long currentId;
 
-	// Holds visible versions.
+	// Holds entity versions.
 	private List<EntityContainer> lastVersions;
-
-	private boolean lastVersionWasVisible;
 
 
 	/**
@@ -59,24 +57,19 @@ public class PostgreSqlHistoryDumpWriter extends PostgreSqlDumpWriter {
 	 */
 	public void process(EntityContainer entityContainer) {
 		if (currentId != null && currentId != entityContainer.getEntity().getId()) {
-			if (!lastVersions.isEmpty() && lastVersionWasVisible) {
-				// Current entity is a new one so now we need to process the
-				// previous one's history and reset.
-				for (EntityContainer container : lastVersions) {
-					super.process(container);
-				}
+			// Current entity is a new one so now we need to process the
+			// previous one's history and reset.
+			for (EntityContainer container : lastVersions) {
+				super.process(container);
 			}
 			lastVersions.clear();
 		}
 
-		if (entityContainer.getEntity().isVisible()) {
-			lastVersions.add(entityContainer);
-			if (lastVersions.size() > NUM_VERSIONS) {
-				lastVersions.remove(0);
-			}
+		lastVersions.add(entityContainer);
+		if (NUM_VERSIONS != -1 && lastVersions.size() > NUM_VERSIONS) {
+			lastVersions.remove(0);
 		}
 
 		currentId = entityContainer.getEntity().getId();
-		lastVersionWasVisible = entityContainer.getEntity().isVisible();
 	}
 }
