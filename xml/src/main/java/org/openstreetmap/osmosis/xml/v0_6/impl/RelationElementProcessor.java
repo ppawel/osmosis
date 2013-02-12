@@ -29,12 +29,13 @@ public class RelationElementProcessor extends EntityElementProcessor implements 
 	private static final String ATTRIBUTE_NAME_USERID = "uid";
 	private static final String ATTRIBUTE_NAME_CHANGESET_ID = "changeset";
 	private static final String ATTRIBUTE_NAME_VERSION = "version";
-	
+	private static final String ATTRIBUTE_NAME_VISIBLE = "visible";
+
 	private TagElementProcessor tagElementProcessor;
 	private RelationMemberElementProcessor relationMemberElementProcessor;
 	private Relation relation;
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -48,12 +49,12 @@ public class RelationElementProcessor extends EntityElementProcessor implements 
 	 */
 	public RelationElementProcessor(BaseElementProcessor parentProcessor, Sink sink, boolean enableDateParsing) {
 		super(parentProcessor, sink, enableDateParsing);
-		
+
 		tagElementProcessor = new TagElementProcessor(this, this);
 		relationMemberElementProcessor = new RelationMemberElementProcessor(this, this);
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -66,7 +67,7 @@ public class RelationElementProcessor extends EntityElementProcessor implements 
 		String rawUserName;
 		OsmUser user;
 		long changesetId;
-		
+
 		id = Long.parseLong(attributes.getValue(ATTRIBUTE_NAME_ID));
 		sversion = attributes.getValue(ATTRIBUTE_NAME_VERSION);
 		if (sversion == null) {
@@ -79,13 +80,18 @@ public class RelationElementProcessor extends EntityElementProcessor implements 
 		rawUserId = attributes.getValue(ATTRIBUTE_NAME_USERID);
 		rawUserName = attributes.getValue(ATTRIBUTE_NAME_USER);
 		changesetId = buildChangesetId(attributes.getValue(ATTRIBUTE_NAME_CHANGESET_ID));
-		
+
 		user = buildUser(rawUserId, rawUserName);
-		
+
 		relation = new Relation(new CommonEntityData(id, version, timestampContainer, user, changesetId));
+
+		String visibleValue = attributes.getValue(ATTRIBUTE_NAME_VISIBLE);
+		if (visibleValue != null) {
+			relation.setVisible(visibleValue.equals("true"));
+		}
 	}
-	
-	
+
+
 	/**
 	 * Retrieves the appropriate child element processor for the newly
 	 * encountered nested element.
@@ -105,19 +111,19 @@ public class RelationElementProcessor extends EntityElementProcessor implements 
 		} else if (ELEMENT_NAME_TAG.equals(qName)) {
 			return tagElementProcessor;
 		}
-		
+
 		return super.getChild(uri, localName, qName);
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	public void end() {
 		getSink().process(new RelationContainer(relation));
 	}
-	
-	
+
+
 	/**
 	 * This is called by child element processors when a tag object is
 	 * encountered.
@@ -128,8 +134,8 @@ public class RelationElementProcessor extends EntityElementProcessor implements 
 	public void processTag(Tag tag) {
 		relation.getTags().add(tag);
 	}
-	
-	
+
+
 	/**
 	 * This is called by child element processors when a way node object is
 	 * encountered.

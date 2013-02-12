@@ -39,7 +39,7 @@ import org.openstreetmap.osmosis.xml.common.XmlTimestampFormat;
  * @author Igor Podolskiy
  */
 public class FastXmlParser {
-	
+
 	private static final String ELEMENT_NAME_BOUND = "bound";
 	private static final String ELEMENT_NAME_NODE = "node";
 	private static final String ELEMENT_NAME_WAY = "way";
@@ -49,6 +49,7 @@ public class FastXmlParser {
 	private static final String ELEMENT_NAME_MEMBER = "member";
 	private static final String ATTRIBUTE_NAME_ID = "id";
 	private static final String ATTRIBUTE_NAME_VERSION = "version";
+	private static final String ATTRIBUTE_NAME_VISIBLE = "visible";
 	private static final String ATTRIBUTE_NAME_GENERATOR = "generator";
 	private static final String ATTRIBUTE_NAME_TIMESTAMP = "timestamp";
 	private static final String ATTRIBUTE_NAME_USER_ID = "uid";
@@ -63,11 +64,11 @@ public class FastXmlParser {
 	private static final String ATTRIBUTE_NAME_ROLE = "role";
 	private static final String ATTRIBUTE_NAME_BOX = "box";
 	private static final String ATTRIBUTE_NAME_ORIGIN = "origin";
-	
+
 	private static final Logger LOG = Logger.getLogger(FastXmlParser.class.getName());
 	private static final Object ELEMENT_NAME_BOUNDS = "bounds";
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 * 
@@ -83,20 +84,20 @@ public class FastXmlParser {
 		this.sink = sink;
 		this.enableDateParsing = enableDateParsing;
 		this.reader = reader;
-		
+
 		if (enableDateParsing) {
 			timestampFormat = new XmlTimestampFormat();
 		} else {
 			Calendar calendar;
-			
+
 			calendar = Calendar.getInstance();
 			calendar.set(Calendar.MILLISECOND, 0);
 			dummyTimestampContainer = new SimpleTimestampContainer(calendar.getTime());
 		}
-		
+
 		memberTypeParser = new MemberTypeParser();
 	}
-	
+
 	private final XMLStreamReader reader;
 	private final Sink sink;
 	private final boolean enableDateParsing;
@@ -104,7 +105,7 @@ public class FastXmlParser {
 	private TimestampFormat timestampFormat;
 	private TimestampContainer dummyTimestampContainer;
 
-	
+
 	private TimestampContainer parseTimestamp(String data) {
 		if (enableDateParsing) {
 			return new UnparsedTimestampContainer(timestampFormat, data);
@@ -112,10 +113,11 @@ public class FastXmlParser {
 			return dummyTimestampContainer;
 		}
 	}
-	
+
+
 	private void readUnknownElement() throws XMLStreamException {
 		int level = 0;
-		
+
 		do {
 			if (reader.getEventType() == XMLStreamConstants.START_ELEMENT) {
 				level++;
@@ -128,45 +130,46 @@ public class FastXmlParser {
 
 
 	/**
-	 * Creates a user instance based on the current entity attributes. This includes identifying the
-	 * case where no user is available.
+	 * Creates a user instance based on the current entity attributes. This
+	 * includes identifying the case where no user is available.
 	 * 
 	 * @return The appropriate user instance.
 	 */
 	private OsmUser readUser() {
 		String rawUserId;
 		String rawUserName;
-		
+
 		rawUserId = reader.getAttributeValue(null, ATTRIBUTE_NAME_USER_ID);
 		rawUserName = reader.getAttributeValue(null, ATTRIBUTE_NAME_USER);
-		
+
 		if (rawUserId != null) {
 			int userId;
 			String userName;
-			
+
 			userId = Integer.parseInt(rawUserId);
 			if (rawUserName == null) {
 				userName = "";
 			} else {
 				userName = rawUserName;
 			}
-			
+
 			return new OsmUser(userId, userName);
-			
+
 		} else {
 			return OsmUser.NONE;
 		}
 	}
-	
-	
+
+
 	/**
 	 * Parses a changeset id from the current entity.
 	 * 
-	 * @return The changeset id as a long. 0 is returned if no attribute is available.
+	 * @return The changeset id as a long. 0 is returned if no attribute is
+	 *         available.
 	 */
 	private long readChangesetId() {
 		String changesetIdAttribute;
-		
+
 		changesetIdAttribute = reader.getAttributeValue(null, ATTRIBUTE_NAME_CHANGESET_ID);
 		if (changesetIdAttribute != null) {
 			return Long.parseLong(changesetIdAttribute);
@@ -174,8 +177,8 @@ public class FastXmlParser {
 			return 0;
 		}
 	}
-	
-	
+
+
 	private Bound readBound() throws Exception {
 		String boxString;
 		String origin;
@@ -184,9 +187,9 @@ public class FastXmlParser {
 		Double left;
 		Double top;
 		Double bottom;
-		
+
 		boxString = reader.getAttributeValue(null, ATTRIBUTE_NAME_BOX);
-		
+
 		if (boxString == null) {
 			throw new OsmosisRuntimeException("Missing required box attribute of bound element");
 		}
@@ -207,13 +210,14 @@ public class FastXmlParser {
 			throw new OsmosisRuntimeException("Origin attribute of bound element is empty or missing.");
 		}
 		Bound bound = new Bound(right, left, top, bottom, origin);
-		
+
 		reader.nextTag();
 		reader.nextTag();
-		
+
 		return bound;
 	}
-	
+
+
 	private Bound readBounds(String defaultOrigin) throws Exception {
 		double bottom = getRequiredDoubleValue(XmlConstants.ATTRIBUTE_NAME_MINLAT);
 		double left = getRequiredDoubleValue(XmlConstants.ATTRIBUTE_NAME_MINLON);
@@ -224,37 +228,39 @@ public class FastXmlParser {
 		if (origin == null) {
 			origin = defaultOrigin;
 		}
-		
+
 		reader.nextTag();
 		reader.nextTag();
 
 		return new Bound(right, left, top, bottom, origin);
 	}
-	
+
+
 	private double getRequiredDoubleValue(String attributeName) {
 		String valueString = reader.getAttributeValue(null, attributeName);
 
 		if (valueString == null) {
-			throw new OsmosisRuntimeException(String.format(
-					"Required attribute %s of the bounds element is missing", attributeName));
+			throw new OsmosisRuntimeException(String.format("Required attribute %s of the bounds element is missing",
+					attributeName));
 		}
 		try {
 			return Double.parseDouble(valueString);
 		} catch (NumberFormatException e) {
-			throw new OsmosisRuntimeException(
-					String.format("Cannot parse the %s attribute of the bounds element", attributeName), 
-					e);
+			throw new OsmosisRuntimeException(String.format("Cannot parse the %s attribute of the bounds element",
+					attributeName), e);
 		}
 	}
-	
+
+
 	private Tag readTag() throws Exception {
-		Tag tag = new Tag(reader.getAttributeValue(null, ATTRIBUTE_NAME_KEY),
-				reader.getAttributeValue(null, ATTRIBUTE_NAME_VALUE));
+		Tag tag = new Tag(reader.getAttributeValue(null, ATTRIBUTE_NAME_KEY), reader.getAttributeValue(null,
+				ATTRIBUTE_NAME_VALUE));
 		reader.nextTag();
 		reader.nextTag();
 		return tag;
 	}
-	
+
+
 	private Node readNode() throws Exception {
 		long id;
 		int version;
@@ -264,18 +270,29 @@ public class FastXmlParser {
 		double latitude;
 		double longitude;
 		Node node;
-		
+
 		id = Long.parseLong(reader.getAttributeValue(null, ATTRIBUTE_NAME_ID));
 		version = Integer.parseInt(reader.getAttributeValue(null, ATTRIBUTE_NAME_VERSION));
+
 		timestamp = parseTimestamp(reader.getAttributeValue(null, ATTRIBUTE_NAME_TIMESTAMP));
 		changesetId = Long.parseLong(reader.getAttributeValue(null, ATTRIBUTE_NAME_CHANGESET_ID));
 		user = readUser();
 		changesetId = readChangesetId();
-		latitude = Double.parseDouble(reader.getAttributeValue(null, ATTRIBUTE_NAME_LATITUDE));
-		longitude = Double.parseDouble(reader.getAttributeValue(null, ATTRIBUTE_NAME_LONGITUDE));
-		
+		String lat = reader.getAttributeValue(null, ATTRIBUTE_NAME_LATITUDE);
+		String lon = reader.getAttributeValue(null, ATTRIBUTE_NAME_LONGITUDE);
+		if (lat == null) {
+			return null;
+		}
+		latitude = Double.parseDouble(lat);
+		longitude = Double.parseDouble(lon);
+
 		node = new Node(new CommonEntityData(id, version, timestamp, user, changesetId), latitude, longitude);
-		
+
+		String visibleValue = reader.getAttributeValue(null, ATTRIBUTE_NAME_VISIBLE);
+		if (visibleValue != null) {
+			node.setVisible(visibleValue.equals("true"));
+		}
+
 		reader.nextTag();
 		while (reader.getEventType() == XMLStreamConstants.START_ELEMENT) {
 			if (reader.getLocalName().equals(ELEMENT_NAME_TAG)) {
@@ -284,20 +301,21 @@ public class FastXmlParser {
 				readUnknownElement();
 			}
 		}
-		
+
 		reader.nextTag();
-		
+
 		return node;
 	}
-	
+
+
 	private WayNode readWayNode() throws Exception {
-		WayNode node = new WayNode(
-				Long.parseLong(reader.getAttributeValue(null, ATTRIBUTE_NAME_REF)));
+		WayNode node = new WayNode(Long.parseLong(reader.getAttributeValue(null, ATTRIBUTE_NAME_REF)));
 		reader.nextTag();
 		reader.nextTag();
 		return node;
 	}
-	
+
+
 	private Way readWay() throws Exception {
 		long id;
 		int version;
@@ -305,15 +323,20 @@ public class FastXmlParser {
 		OsmUser user;
 		long changesetId;
 		Way way;
-		
+
 		id = Long.parseLong(reader.getAttributeValue(null, ATTRIBUTE_NAME_ID));
 		version = Integer.parseInt(reader.getAttributeValue(null, ATTRIBUTE_NAME_VERSION));
 		timestamp = parseTimestamp(reader.getAttributeValue(null, ATTRIBUTE_NAME_TIMESTAMP));
 		user = readUser();
 		changesetId = readChangesetId();
-		
+
 		way = new Way(new CommonEntityData(id, version, timestamp, user, changesetId));
-		
+
+		String visibleValue = reader.getAttributeValue(null, ATTRIBUTE_NAME_VISIBLE);
+		if (visibleValue != null) {
+			way.setVisible(visibleValue.equals("true"));
+		}
+
 		reader.nextTag();
 		while (reader.getEventType() == XMLStreamConstants.START_ELEMENT) {
 			if (reader.getLocalName().equals(ELEMENT_NAME_TAG)) {
@@ -328,24 +351,26 @@ public class FastXmlParser {
 
 		return way;
 	}
-	
+
+
 	private RelationMember readRelationMember() throws Exception {
 		long id;
 		EntityType type;
 		String role;
-		
+
 		id = Long.parseLong(reader.getAttributeValue(null, ATTRIBUTE_NAME_REF));
 		type = memberTypeParser.parse(reader.getAttributeValue(null, ATTRIBUTE_NAME_TYPE));
 		role = reader.getAttributeValue(null, ATTRIBUTE_NAME_ROLE);
-		
+
 		RelationMember relationMember = new RelationMember(id, type, role);
-		
+
 		reader.nextTag();
 		reader.nextTag();
-		
+
 		return relationMember;
 	}
-	
+
+
 	private Relation readRelation() throws Exception {
 		long id;
 		int version;
@@ -353,15 +378,20 @@ public class FastXmlParser {
 		OsmUser user;
 		long changesetId;
 		Relation relation;
-		
+
 		id = Long.parseLong(reader.getAttributeValue(null, ATTRIBUTE_NAME_ID));
 		version = Integer.parseInt(reader.getAttributeValue(null, ATTRIBUTE_NAME_VERSION));
 		timestamp = parseTimestamp(reader.getAttributeValue(null, ATTRIBUTE_NAME_TIMESTAMP));
 		user = readUser();
 		changesetId = readChangesetId();
-		
+
 		relation = new Relation(new CommonEntityData(id, version, timestamp, user, changesetId));
-		
+
+		String visibleValue = reader.getAttributeValue(null, ATTRIBUTE_NAME_VISIBLE);
+		if (visibleValue != null) {
+			relation.setVisible(visibleValue.equals("true"));
+		}
+
 		reader.nextTag();
 		while (reader.getEventType() == XMLStreamConstants.START_ELEMENT) {
 			if (reader.getLocalName().equals(ELEMENT_NAME_TAG)) {
@@ -373,20 +403,20 @@ public class FastXmlParser {
 			}
 		}
 		reader.nextTag();
-		
+
 		return relation;
 	}
 
-	
+
 	/**
 	 * Parses the xml and sends all data to the sink.
 	 */
 	public void readOsm() {
-		
+
 		try {
-		
+
 			String generator = null;
-			
+
 			if (reader.nextTag() == XMLStreamConstants.START_ELEMENT && reader.getLocalName().equals("osm")) {
 
 				String fileVersion;
@@ -394,29 +424,25 @@ public class FastXmlParser {
 				fileVersion = reader.getAttributeValue(null, ATTRIBUTE_NAME_VERSION);
 
 				if (!XmlConstants.OSM_VERSION.equals(fileVersion)) {
-					LOG.warning(
-							"Expected version " + XmlConstants.OSM_VERSION
-							+ " but received " + fileVersion + "."
-					);
+					LOG.warning("Expected version " + XmlConstants.OSM_VERSION + " but received " + fileVersion + ".");
 				}
-				
+
 				generator = reader.getAttributeValue(null, ATTRIBUTE_NAME_GENERATOR);
 
 				reader.nextTag();
-				
 
 				if (reader.getEventType() == XMLStreamConstants.START_ELEMENT
 						&& reader.getLocalName().equals(ELEMENT_NAME_BOUND)) {
 					LOG.fine("Legacy <bound> element encountered.");
 					sink.process(new BoundContainer(readBound()));
 				}
-				
+
 				if (reader.getEventType() == XMLStreamConstants.START_ELEMENT
 						&& reader.getLocalName().equals(ELEMENT_NAME_BOUNDS)) {
 					sink.process(new BoundContainer(readBounds(generator)));
 				}
 
-				while (reader.getEventType() == XMLStreamConstants.START_ELEMENT) {			
+				while (reader.getEventType() == XMLStreamConstants.START_ELEMENT) {
 					// Node, way, relation
 					if (reader.getLocalName().equals(ELEMENT_NAME_NODE)) {
 						sink.process(new NodeContainer(readNode()));
