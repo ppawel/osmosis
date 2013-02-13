@@ -57,13 +57,18 @@ public class PostgreSqlHistoryDumpWriter extends PostgreSqlDumpWriter {
 	 */
 	public void process(EntityContainer entityContainer) {
 		if (currentId != null && currentId != entityContainer.getEntity().getId()) {
-			// Current entity is a new one so now we need to process the
-			// previous one's history and reset.
-			int rev = 1;
-			lastVersions.get(lastVersions.size() - 1).getEntity().setCurrent(true);
-			for (EntityContainer container : lastVersions) {
-				container.getEntity().setRev(rev++);
-				super.process(container);
+			// Only process entities with meaningful history - skip stuff like
+			// http://www.openstreetmap.org/browse/node/6575042 which is not
+			// useful for OWL.
+			if (lastVersions.size() > 1 || lastVersions.get(0).getEntity().isVisible()) {
+				// Current entity is a new one so now we need to process the
+				// previous one's history and reset.
+				int rev = 1;
+				lastVersions.get(lastVersions.size() - 1).getEntity().setCurrent(true);
+				for (EntityContainer container : lastVersions) {
+					container.getEntity().setRev(rev++);
+					super.process(container);
+				}
 			}
 			lastVersions.clear();
 		}
