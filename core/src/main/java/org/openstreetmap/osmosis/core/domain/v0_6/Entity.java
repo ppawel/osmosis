@@ -405,4 +405,24 @@ public abstract class Entity implements Storeable {
 	public void setVisible(boolean visible) {
 		entityData.setVisible(visible);
 	}
+
+
+	public boolean isCurrent() {
+		return entityData.isCurrent();
+	}
+
+
+	public void setCurrent(boolean current) {
+		entityData.setCurrent(current);
+	}
+
+
+	public int getRev() {
+		return entityData.getRev();
+	}
+
+
+	public void setRev(int rev) {
+		entityData.setRev(rev);
+	}
 }

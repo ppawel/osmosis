@@ -37,6 +37,8 @@ public class CommonEntityData implements Storeable {
 	private Map<String, Object> metaTags;
 	private boolean readOnly;
 	private boolean visible;
+	private boolean current;
+	private int rev;
 
 
 	/**
@@ -530,5 +532,25 @@ public class CommonEntityData implements Storeable {
 
 	public void setVisible(boolean visible) {
 		this.visible = visible;
+	}
+
+
+	public boolean isCurrent() {
+		return current;
+	}
+
+
+	public void setCurrent(boolean current) {
+		this.current = current;
+	}
+
+
+	public int getRev() {
+		return rev;
+	}
+
+
+	public void setRev(int rev) {
+		this.rev = rev;
 	}
 }
