@@ -22,7 +22,7 @@ public class PointBuilder {
 	public Point createPoint(double latitude, double longitude) {
 		Point result = null;
 
-		if (latitude != Double.NaN && longitude != Double.NaN) {
+		if (!Double.isNaN(latitude) && !Double.isNaN(longitude)) {
 			result = new Point(longitude, latitude);
 			result.srid = 4326;
 		}
