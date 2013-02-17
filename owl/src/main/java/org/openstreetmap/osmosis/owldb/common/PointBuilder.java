@@ -20,11 +20,13 @@ public class PointBuilder {
 	 * @return The Point object.
 	 */
 	public Point createPoint(double latitude, double longitude) {
-		Point result;
-		
-		result = new Point(longitude, latitude);
-		result.srid = 4326;
-		
+		Point result = null;
+
+		if (latitude != Double.NaN && longitude != Double.NaN) {
+			result = new Point(longitude, latitude);
+			result.srid = 4326;
+		}
+
 		return result;
 	}
 }
