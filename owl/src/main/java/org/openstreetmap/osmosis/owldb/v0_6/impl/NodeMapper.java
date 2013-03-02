@@ -6,6 +6,7 @@ import java.util.Map;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.openstreetmap.osmosis.owldb.common.PointBuilder;
 import org.postgis.PGgeometry;
+import org.postgis.Point;
 import org.springframework.jdbc.core.RowMapper;
 
 
@@ -15,18 +16,18 @@ import org.springframework.jdbc.core.RowMapper;
  * @author Brett Henderson
  */
 public class NodeMapper extends EntityMapper<Node> {
-	
+
 	private PointBuilder pointBuilder;
-	
-	
+
+
 	/**
 	 * Creates a new instance.
 	 */
 	public NodeMapper() {
 		pointBuilder = new PointBuilder();
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -34,8 +35,8 @@ public class NodeMapper extends EntityMapper<Node> {
 	public String getEntityName() {
 		return "node";
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -43,8 +44,8 @@ public class NodeMapper extends EntityMapper<Node> {
 	public ActionDataType getEntityType() {
 		return ActionDataType.NODE;
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -52,14 +53,14 @@ public class NodeMapper extends EntityMapper<Node> {
 	public Class<Node> getEntityClass() {
 		return Node.class;
 	}
-	
-	
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	protected String[] getTypeSpecificFieldNames() {
-		return new String[] {"geom"};
+		return new String[] { "geom" };
 	}
 
 
@@ -69,8 +70,8 @@ public class NodeMapper extends EntityMapper<Node> {
 	@Override
 	public void populateEntityParameters(Map<String, Object> args, Node entity) {
 		populateCommonEntityParameters(args, entity);
-		
-		args.put("geom", new PGgeometry(pointBuilder.createPoint(entity.getLatitude(), entity.getLongitude())));
+		Point point = pointBuilder.createPoint(entity.getLatitude(), entity.getLongitude());
+		args.put("geom", point == null ? null : new PGgeometry(point));
 	}
 
 

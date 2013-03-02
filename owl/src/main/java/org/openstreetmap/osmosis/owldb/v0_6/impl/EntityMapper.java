@@ -146,34 +146,7 @@ public abstract class EntityMapper<T extends Entity> {
 	 * @return The SQL string.
 	 */
 	public String getSqlInsert(int rowCount) {
-		String[] typeSpecificFieldNames;
-		StringBuilder resultSql;
-
-		typeSpecificFieldNames = getTypeSpecificFieldNames();
-
-		resultSql = new StringBuilder();
-		resultSql.append("INSERT INTO ").append(getEntityName()).append("s");
-		resultSql.append("(id, version, user_id, visible, tstamp, changeset_id, tags");
-		for (String fieldName : Arrays.asList(typeSpecificFieldNames)) {
-			if (!fieldName.equals("linestring")) {
-				resultSql.append(", ").append(fieldName);
-			}
-		}
-		resultSql.append(") VALUES ");
-		for (int row = 0; row < rowCount; row++) {
-			if (row > 0) {
-				resultSql.append(", ");
-			}
-			resultSql.append("(:id, :version, :userId, :visible, :timestamp, :changesetId, :tags");
-			for (int i = 0; i < typeSpecificFieldNames.length; i++) {
-				if (!typeSpecificFieldNames[i].equals("linestring")) {
-					resultSql.append(", :").append(typeSpecificFieldNames[i]);
-				}
-			}
-			resultSql.append(")");
-		}
-
-		return resultSql.toString();
+		return getSql(true, rowCount);
 	}
 
 
@@ -186,24 +159,7 @@ public abstract class EntityMapper<T extends Entity> {
 	 * @return The SQL String.
 	 */
 	public String getSqlUpdate(boolean filterByEntityId) {
-		StringBuilder resultSql;
-
-		resultSql = new StringBuilder();
-		resultSql
-				.append("UPDATE ")
-				.append(getEntityName())
-				.append("s SET id = :id, version = :version, user_id = :userId,"
-						+ " tstamp = :timestamp, changeset_id = :changesetId, tags = :tags");
-		for (String fieldName : Arrays.asList(getTypeSpecificFieldNames())) {
-			if (!fieldName.equals("linestring")) {
-				resultSql.append(", ").append(fieldName).append(" = :").append(fieldName);
-			}
-		}
-		if (filterByEntityId) {
-			resultSql.append(" WHERE id = :id");
-		}
-
-		return resultSql.toString();
+		return getSql(true, 1);
 	}
 
 
@@ -216,15 +172,7 @@ public abstract class EntityMapper<T extends Entity> {
 	 * @return The SQL String.
 	 */
 	public String getSqlDelete(boolean filterByEntityId) {
-		StringBuilder resultSql;
-
-		resultSql = new StringBuilder();
-		resultSql.append("DELETE FROM ").append(getEntityName()).append("s");
-		if (filterByEntityId) {
-			resultSql.append(" WHERE id = :id AND version = :version");
-		}
-
-		return resultSql.toString();
+		return getSql(true, 1);
 	}
 
 
@@ -258,6 +206,56 @@ public abstract class EntityMapper<T extends Entity> {
 		args.put("timestamp", new Timestamp(entity.getTimestamp().getTime()));
 		args.put("changesetId", entity.getChangesetId());
 		args.put("tags", tags);
+	}
+
+
+	protected String getSql(boolean revSql, int rowCount) {
+		String[] typeSpecificFieldNames;
+		StringBuilder resultSql;
+
+		typeSpecificFieldNames = getTypeSpecificFieldNames();
+
+		resultSql = new StringBuilder();
+		resultSql.append("INSERT INTO ").append(getEntityName()).append("s");
+		resultSql.append("(id, version, ");
+		if (revSql) {
+			resultSql.append("rev, ");
+		}
+		resultSql.append("user_id, visible, current, tstamp, changeset_id, tags");
+		for (String fieldName : Arrays.asList(typeSpecificFieldNames)) {
+			if (!fieldName.equals("linestring")) {
+				resultSql.append(", ").append(fieldName);
+			}
+		}
+		resultSql.append(") VALUES ");
+		for (int row = 0; row < rowCount; row++) {
+			if (row > 0) {
+				resultSql.append(", ");
+			}
+			resultSql.append("(:id, :version,");
+			if (revSql) {
+				resultSql.append("(SELECT CASE WHEN MAX(rev) IS NOT NULL THEN MAX(rev) + 1 ELSE 1 END FROM "
+						+ getEntityName() + "s WHERE id = :id), ");
+			}
+			resultSql.append(":userId, :visible, true, :timestamp, :changesetId, :tags");
+			for (int i = 0; i < typeSpecificFieldNames.length; i++) {
+				if (!typeSpecificFieldNames[i].equals("linestring")) {
+					resultSql.append(", :").append(typeSpecificFieldNames[i]);
+				}
+			}
+			resultSql.append(")");
+		}
+
+		return resultSql.toString();
+	}
+
+
+	public String getSqlUpdateCurrentFlag() {
+		StringBuilder resultSql;
+		resultSql = new StringBuilder();
+		resultSql.append("UPDATE ").append(getEntityName()).append("s");
+		resultSql.append(" SET current = false WHERE id = :id AND current");
+		return resultSql.toString();
 	}
 
 

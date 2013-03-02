@@ -100,6 +100,7 @@ public abstract class EntityDao<T extends Entity> {
 		args = new HashMap<String, Object>();
 		entityMapper.populateEntityParameters(args, entity);
 
+		jdbcTemplate.update(entityMapper.getSqlUpdateCurrentFlag(), args);
 		jdbcTemplate.update(entityMapper.getSqlInsert(1), args);
 
 		actionDao.addAction(entityMapper.getEntityType(), ChangesetAction.CREATE, entity.getId());
@@ -118,7 +119,8 @@ public abstract class EntityDao<T extends Entity> {
 		args = new HashMap<String, Object>();
 		entityMapper.populateEntityParameters(args, entity);
 
-		jdbcTemplate.update(entityMapper.getSqlInsert(1), args);
+		jdbcTemplate.update(entityMapper.getSqlUpdateCurrentFlag(), args);
+		jdbcTemplate.update(entityMapper.getSqlUpdate(true), args);
 
 		actionDao.addAction(entityMapper.getEntityType(), ChangesetAction.MODIFY, entity.getId());
 	}
@@ -138,7 +140,8 @@ public abstract class EntityDao<T extends Entity> {
 		args.put("version", entity.getVersion());
 		entityMapper.populateEntityParameters(args, entity);
 
-		jdbcTemplate.update(entityMapper.getSqlInsert(1), args);
+		jdbcTemplate.update(entityMapper.getSqlUpdateCurrentFlag(), args);
+		jdbcTemplate.update(entityMapper.getSqlDelete(true), args);
 
 		actionDao.addAction(entityMapper.getEntityType(), ChangesetAction.DELETE, entity.getId());
 	}

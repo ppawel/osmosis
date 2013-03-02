@@ -121,4 +121,22 @@ public class WayMapper extends EntityMapper<Way> {
 	public RowMapper<Way> getRowMapper() {
 		return new WayRowMapper();
 	}
+
+
+	@Override
+	public String getSqlInsert(int rowCount) {
+		return getSql(false, rowCount);
+	}
+
+
+	@Override
+	public String getSqlUpdate(boolean filterByEntityId) {
+		return getSql(false, 1);
+	}
+
+
+	@Override
+	public String getSqlDelete(boolean filterByEntityId) {
+		return getSql(false, 1);
+	}
 }
