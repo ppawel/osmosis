@@ -27,6 +27,7 @@ import org.openstreetmap.osmosis.hstore.PGHStore;
 import org.openstreetmap.osmosis.owldb.common.CopyFileWriter;
 import org.openstreetmap.osmosis.owldb.common.NodeLocationStoreType;
 import org.openstreetmap.osmosis.owldb.common.PointBuilder;
+import org.postgis.Geometry;
 
 
 /**
@@ -143,7 +144,13 @@ public class CopyFilesetBuilder implements Sink, EntityProcessor {
 		nodeWriter.writeField(node.getTimestamp());
 		nodeWriter.writeField(node.getChangesetId());
 		nodeWriter.writeField(buildTags(node));
-		nodeWriter.writeField(pointBuilder.createPoint(node.getLatitude(), node.getLongitude()));
+
+		if (node.isVisible()) {
+			nodeWriter.writeField(pointBuilder.createPoint(node.getLatitude(), node.getLongitude()));
+		} else {
+			nodeWriter.writeField((Geometry) null);
+		}
+
 		nodeWriter.endRecord();
 
 		// wayGeometryBuilder.addNodeLocation(node);
