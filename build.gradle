@@ -1,5 +1,5 @@
 task wrapper(type: Wrapper) {
-	gradleVersion = '1.2'
+	gradleVersion = '1.4'
 }
 
 
@@ -15,26 +15,17 @@ def javaProjects = subprojects.findAll { project -> !packageProjects.contains(pr
 subprojects {
 	apply plugin: 'eclipse-wtp'
 
-	// Load the project version dynamically from Git
-	version = 'git describe --always --dirty'.execute().in.text.trim()
+	// All projects use a common group id.
+	group = 'org.openstreetmap.osmosis'
+
+	// Load the project version dynamically from Git.  For release builds, don't add a suffix.
+	def versionSuffix = "RELEASE".equals(osmosisBuildType) ? '' : '-' + osmosisBuildType
+	version = 'git describe --always --dirty'.execute().in.text.trim() + versionSuffix
 
 	// Enable access to artefact dependency repositories.
 	repositories {
 		// Standard Maven repository.
 		mavenCentral()
-
-		// Custom local ivy repository for non-public artefacts.
-		ivy {
-			// URL can refer to a local directory
-			url new File(rootDir, 'build-support/repo')
-
-			// Configure Ivy layout to match local repo directory structure.
-			layout 'pattern', {
-				artifact '[organisation]/[module]/[revision]/[type]s/[artifact].[ext]'
-				artifact "[module]/[revision]/[artifact].[ext]"
-				ivy "[organisation]/[module]/[revision]/ivys/ivy.xml"
-			}
-		}
 	}
 }
 
@@ -43,9 +34,8 @@ configure(javaProjects) {
 	apply plugin: 'checkstyle'
 	apply plugin: 'java'
 	apply plugin: 'jdepend'
-
-	// Add osmosis prefix to all generated jar files.
-	archivesBaseName = 'osmosis-' + project.name
+	apply plugin: 'maven'
+	apply plugin: 'signing'
 
 	sourceCompatibility = 1.6
 
@@ -70,5 +60,72 @@ configure(javaProjects) {
 	checkstyle {
 		configFile = new File(rootDir, 'build-support/checkstyle.xml')
 		configProperties.samedir = configFile.parentFile
+	}
+
+	// Build javadoc and source jars and include in published artifacts.
+	task javadocJar(type: Jar, dependsOn: javadoc) {
+		classifier = 'javadoc'
+		from 'build/docs/javadoc'
+	}
+	task sourcesJar(type: Jar) {
+		from sourceSets.main.allSource
+		classifier = 'sources'
+	}
+	artifacts {
+	    archives jar
+	
+	    archives javadocJar
+	    archives sourcesJar
+	}
+
+	// Sign all published artifacts if signing is enabled.
+	signing {
+		sign configurations.archives
+		required = Boolean.valueOf(osmosisSigningEnabled)
+	}
+
+	// Configure the maven plugin to upload artefacts to the Sonatype repository.
+	uploadArchives {
+		repositories {
+			mavenDeployer {
+				beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+				// We upload to the Sonatype SNAPSHOT repository unless it is a release build in
+				// which case we upload to the staging repository.
+				def sonatypeRepoUrl = "RELEASE".equals(osmosisBuildType) ?
+					'https://oss.sonatype.org/service/local/staging/deploy/maven2/' :
+					'https://oss.sonatype.org/content/repositories/snapshots/'
+				repository(url: sonatypeRepoUrl) {
+					authentication(userName: sonatypeUsername, password: sonatypePassword)
+				}
+
+				pom.project {
+					name project.name
+					packaging 'jar'
+					description 'Osmosis is a Java application and library for processing OSM data.'
+					url 'http://wiki.openstreetmap.org/wiki/Osmosis'
+
+					scm {
+						url 'https://github.com/openstreetmap/osmosis'
+						connection 'scm:git:git://github.com/openstreetmap/osmosis.git'
+						developerConnection 'scm:git:ssh://git@github.com/openstreetmap/osmosis.git'
+					}
+
+					licenses {
+						license {
+							name 'Public Domain'
+						}
+					}
+
+					developers {
+						developer {
+							id 'brett'
+							name 'Brett Henderson'
+							email 'brett@bretth.com'
+						}
+					}
+				}
+			}
+		}
 	}
 }
