@@ -1,4 +1,5 @@
+.project
+.settings
 /build
-/distrib
 /lib
-/report
+
